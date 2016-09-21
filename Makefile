@@ -41,3 +41,11 @@ clean:
 	rm -f $(OBJDIR)/*.o
 	rm -f $(BINDIR)/*
 	rm -f $(TESTBIN)/*
+
+configure:
+	mkdir -p $(INCDIR)
+	mkdir -p $(SRCDIR)
+	mkdir -p $(OBJDIR)
+	mkdir -p $(BINDIR)
+	mkdir -p $(TESTSRC)
+	mkdir -p $(TESTBIN)
