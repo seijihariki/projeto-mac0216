@@ -42,7 +42,7 @@ void stable_destroy(SymbolTable table)
 InsertionResult stable_insert(SymbolTable table, const char *key)
 {
     char *keychar = (char*) key;
-    
+
     SymbolTable currnode = table;
 
     while(*keychar)
@@ -101,7 +101,7 @@ InsertionResult stable_insert(SymbolTable table, const char *key)
     }
 
     // If last node not initialized
-    if(!currnode->value) currnode->value = *(keychar - 1); 
+    if(!currnode->value) currnode->value = *(keychar - 1);
     InsertionResult result;
 
     if(currnode->last_node) result.new = 0;
@@ -118,7 +118,7 @@ InsertionResult stable_insert(SymbolTable table, const char *key)
 EntryData *stable_find(SymbolTable table, const char *key)
 {
     char *keychar = (char*) key;
-    
+
     SymbolTable currnode = table;
 
     while(*keychar)
@@ -185,18 +185,18 @@ int stable_visit_rec(SymbolTable table, char *currstr, int *maxlen, int depth,
 
     if(table->last_node)
     {
-        currstr[depth + 1] = 0;
+        currstr[depth] = 0;
         if(!visit(currstr, &table->data)) return 0;
     }
 
     if(!stable_visit_rec(table->lower, currstr,
-                maxlen, depth + 1, visit)) return 0;
+                maxlen, depth, visit)) return 0;
 
     if(!stable_visit_rec(table->middle, currstr,
                 maxlen, depth + 1, visit)) return 0;
 
     if(!stable_visit_rec(table->higher, currstr,
-                maxlen, depth + 1, visit)) return 0;
+                maxlen, depth, visit)) return 0;
 
     return 1;
 }
