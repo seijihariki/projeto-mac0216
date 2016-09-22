@@ -35,12 +35,21 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.c
 $(OBJDIR)/%.o: $(TESTSRC)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@ -I$(INCDIR)
 
+# Upload to git
+
+upload: clean
+	git add --all
+	git commit
+	git push
+
 # Clean binaries
 
 clean:
 	rm -f $(OBJDIR)/*.o
 	rm -f $(BINDIR)/*
 	rm -f $(TESTBIN)/*
+
+# Configure folder structure
 
 configure:
 	mkdir -p $(INCDIR)
