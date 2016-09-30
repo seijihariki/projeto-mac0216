@@ -1,4 +1,5 @@
 #include "stable.h"
+#include "error.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,7 +21,7 @@ struct stable_s {
 // Return a new symbol table (Can be used for creating new symbol table nodes)
 SymbolTable stable_create()
 {
-    SymbolTable table = (SymbolTable) malloc(sizeof(struct stable_s));
+    SymbolTable table = (SymbolTable) emalloc(sizeof(struct stable_s));
     table->last_node = 0;
     table->value = 0;
     table->lower = NULL;
@@ -56,10 +57,7 @@ InsertionResult stable_insert(SymbolTable table, const char *key)
             // Create lower child case non-existent
             if(!currnode->lower) currnode->lower = stable_create();
             if(!currnode->lower)
-            {
-                printf("Failed allocating new node.\n");
-                exit(-1);
-            }
+                die("Failed to allocate new node.");
 
             // Navigate to lower child
             currnode = currnode->lower;
@@ -72,11 +70,7 @@ InsertionResult stable_insert(SymbolTable table, const char *key)
             // Create middle child case non-existent
             if(!currnode->middle) currnode->middle = stable_create();
             if(!currnode->middle)
-            {
-                printf("Failed allocating new node.\n");
-                exit(-1);
-            }
-
+                die("Failed to allocate new node.");
             // Navigate to middle child and go to next character
             currnode = currnode->middle;
             keychar++;
@@ -89,10 +83,7 @@ InsertionResult stable_insert(SymbolTable table, const char *key)
             // Create higher child case non-existent
             if(!currnode->higher) currnode->higher = stable_create();
             if(!currnode->higher)
-            {
-                printf("Failed allocating new node.\n");
-                exit(-1);
-            }
+                die("Failed to allocate new node.");
 
             // Navigate to higher child
             currnode = currnode->higher;
@@ -175,10 +166,7 @@ int stable_visit_rec(SymbolTable table, char *currstr, int *maxlen, int depth,
         *maxlen += 20;
         currstr = (char*) realloc(currstr, *maxlen + 1);
         if(!currstr)
-        {
-            printf("stable: stable_visit_rec: Failed to reallocate string.\n");
-            exit(-1);
-        }
+            die("Failed to reallocate string.");
     }
 
     currstr[depth] = table->value;
