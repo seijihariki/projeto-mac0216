@@ -18,10 +18,10 @@ all: tests
 
 tests: $(TESTBIN)/justify $(TESTBIN)/freq
 
-$(TESTBIN)/justify: $(OBJDIR)/justify.o $(OBJDIR)/buffer.o
+$(TESTBIN)/justify: $(OBJDIR)/justify.o $(OBJDIR)/buffer.o $(OBJDIR)/error.o
 	$(CC) $(CFLAGS) -o $@ $^
 
-$(TESTBIN)/freq: $(OBJDIR)/freq.o $(OBJDIR)/stable.o
+$(TESTBIN)/freq: $(OBJDIR)/freq.o $(OBJDIR)/stable.o $(OBJDIR)/error.o
 	$(CC) $(CFLAGS) -o $@ $^
 
 # General rules
