@@ -6,6 +6,13 @@ Buffer *buffer_create()
 {
     Buffer *B;
     B->data  = malloc(B->n * sizeof(char));
+    if (B->data == NULL)
+    {
+        //Not enough memory to create the buffer
+        printf("unable to create Buffer: Out of memory");
+        free(B->data);
+        exit(-1);
+    }
     B->i = 0;
     return B;
 } 
@@ -24,19 +31,27 @@ void buffer_reset(Buffer *B)
 
 void buffer_push_back(Buffer *B, char c)
 {
-    //Aumenta o vetor data caso não tenha espaco suficiente
+    //If Buffer is full
     if (B->i == B->n)
     {
         char *aux;
         int j;
         aux = malloc((B->n * 2) * sizeof(char));
+        if (aux == NULL)
+        {
+            //Not enough memory to reallocate buffer
+            printf("Unable to reallocate Buffer: Out of memory");
+            buffer_destroy(B);
+            exit(-1);
+        }
         for (j = 0; j < B->n; j++)
             aux[j] = B->data[j];
         B->n = B->n * 2;
         free(B->data);
         B->data = aux;
+        free(aux);
     }
-    
+
 	B->data[B->i] = c;
     B->i++;
     
