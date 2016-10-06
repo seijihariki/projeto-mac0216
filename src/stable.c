@@ -67,12 +67,15 @@ InsertionResult stable_insert(SymbolTable table, const char *key)
         // If current character is equal to current node's
         if(*keychar == currnode->value)
         {
-            // Create middle child case non-existent
-            if(!currnode->middle) currnode->middle = stable_create();
-            if(!currnode->middle)
-                die("Failed to allocate new node.");
-            // Navigate to middle child and go to next character
-            currnode = currnode->middle;
+            if(*(keychar + 1))
+            {
+                // Create middle child case non-existent
+                if(!currnode->middle) currnode->middle = stable_create();
+                if(!currnode->middle)
+                    die("Failed to allocate new node.");
+                // Navigate to middle child and go to next character
+                currnode = currnode->middle;
+            }
             keychar++;
             continue;
         }
@@ -170,22 +173,30 @@ int stable_visit_rec(SymbolTable table, char *currstr, int *maxlen, int depth,
     }
 
     currstr[depth] = table->value;
-
-    if(table->last_node)
-    {
-        currstr[depth] = 0;
-        if(!visit(currstr, &table->data)) return 0;
-    }
+    currstr[depth + 1] = 0;
 
     if(!stable_visit_rec(table->lower, currstr,
-                maxlen, depth, visit)) return 0;
+               maxlen, depth, visit)) return 0;
+
+    currstr[depth] = table->value;
+    currstr[depth + 1] = 0;
+    
+    if(table->last_node)
+    {
+        if(!visit(currstr, &table->data)) return 0;
+    }
+    
+    currstr[depth] = table->value;
+    currstr[depth + 1] = 0;
 
     if(!stable_visit_rec(table->middle, currstr,
                 maxlen, depth + 1, visit)) return 0;
+    
+    currstr[depth] = table->value;
+    currstr[depth + 1] = 0;
 
     if(!stable_visit_rec(table->higher, currstr,
                 maxlen, depth, visit)) return 0;
-
     return 1;
 }
 
@@ -194,7 +205,7 @@ int stable_visit(SymbolTable table,
         int (*visit)(const char *key, EntryData *data))
 {
     int maxlen = 20;
-    char *string = (char*) malloc(maxlen);
+    char *string = (char*) malloc(maxlen*sizeof(char));
 
     if(!string)
     {

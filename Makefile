@@ -8,7 +8,7 @@ OBJDIR:=obj
 BINDIR:=bin
 
 TESTSRC:=testsrc
-TESTBIN:=$(TESTSRC)/bin
+TESTBIN:=testbin
 
 # Make all
 
@@ -45,9 +45,9 @@ upload: clean
 # Clean binaries
 
 clean:
-	rm -f $(OBJDIR)/*.o
-	rm -f $(BINDIR)/*
-	rm -f $(TESTBIN)/*
+	rm -rf $(OBJDIR)/*.o
+	rm -rf $(BINDIR)/*
+	rm -rf $(TESTBIN)/*
 
 # Configure folder structure
 
