@@ -8,15 +8,16 @@ int main(int argc, char *argv[])
     int c, linec = 0, colNum, OK = 1, lastc = 0, firstc = 0, spc, i;
     FILE *input, *output;
     Buffer *line;
+    line =  buffer_create();
 
-    if (argc < 3) 
-        die("Too few arguments supplied, 3 espected.\n");
+    set_prog_name("Center");
 
-    else if (argc > 3) 
-        die("Too many arguments supplied, 3 expected.\n");
+    if (argc < 4) 
+        die("Too few arguments supplied, expected 3.\n");
 
-    set_prog_name(argv[0]);
-    c = *argv[3];  
+    else if (argc > 4) 
+        die("Too many arguments supplied, expected 3.\n");
+    sscanf(argv[3], "%d", &c);
     input = fopen(argv[1], "r");
     output = fopen(argv[2], "w+");
     line = buffer_create();
