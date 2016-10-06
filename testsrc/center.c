@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
         die("Too many arguments supplied, 3 expected.\n");
 
     set_prog_name(argv[0]);
-    c = argv[3];  
+    c = *argv[3];  
     input = fopen(argv[1], "r");
     output = fopen(argv[2], "w+");
     line = buffer_create();
@@ -26,11 +26,11 @@ int main(int argc, char *argv[])
         colNum = read_line(input, line);
         if (colNum > 0 && colNum <= c)
         {
-            for (i = 0; isspace(line[i]) && i < colNum ; i++);
+            for (i = 0; isspace(line->data[i]) > 0 && i < colNum ; i++);
             firstc = i;
             for (i += 1; i < colNum - 1; i++)
             {
-                if(isspace(line[i]) && isspace(line[i + 1]))
+                if(isspace(line->data[i]) > 0  && isspace(line->data[i + 1]) > 0)
                 {
                     lastc = i;
                     break;
@@ -40,17 +40,17 @@ int main(int argc, char *argv[])
                 lastc = i;
             spc = (c - (lastc - firstc))/2;
             for (i = spc; i > 0; i--)
-                fprintf(" ");
+                fprintf(output, " ");
             for (i = firstc; i <= lastc; i--)
-                fprintf("%c", line[i]);
+                fprintf(output, "%c", line->data[i]);
             for (i = spc; i > 0; i--)
-                fprintf(" ");
-            fprintf("\n");
+                fprintf(output, " ");
+            fprintf(output, "\n");
             
 
         }
         else
-            ok = 0;
+            OK = 0;
     }
 
     if (colNum > c)

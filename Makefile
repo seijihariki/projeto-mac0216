@@ -16,9 +16,9 @@ all: tests
 
 # Make tests
 
-tests: $(TESTBIN)/justify $(TESTBIN)/freq
+tests: $(TESTBIN)/center $(TESTBIN)/freq
 
-$(TESTBIN)/justify: $(OBJDIR)/justify.o $(OBJDIR)/buffer.o $(OBJDIR)/error.o
+$(TESTBIN)/center: $(OBJDIR)/center.o $(OBJDIR)/buffer.o $(OBJDIR)/error.o
 	$(CC) $(CFLAGS) -o $@ $^
 
 $(TESTBIN)/freq: $(OBJDIR)/freq.o $(OBJDIR)/stable.o $(OBJDIR)/error.o
