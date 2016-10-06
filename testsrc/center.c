@@ -5,7 +5,7 @@
 
 int main(int argc, char *argv[])
 {
-    int c, linec, colNum, OK = 1, lastc = 0, firstc = 0, spc, i;
+    int c, linec = 0, colNum, OK = 1, lastc = 0, firstc = 0, spc, i;
     FILE *input, *output;
     Buffer *line;
 

@@ -1,18 +1,14 @@
 #include "buffer.h"
+#include "error.h"
 #include <stdio.h>
 #include <stdlib.h>
 
 Buffer *buffer_create()
 {
     Buffer *B;
-    B->data  = malloc(B->n * sizeof(char));
-    if (B->data == NULL)
-    {
-        //Not enough memory to create the buffer
-        printf("unable to create Buffer: Out of memory");
-        free(B->data);
-        exit(-1);
-    }
+    B = emalloc(sizeof(Buffer));
+    B->n = 50;
+    B->data = emalloc(B->n * sizeof(char));
     B->i = 0;
     return B;
 } 
@@ -34,22 +30,14 @@ void buffer_push_back(Buffer *B, char c)
     //If Buffer is full
     if (B->i == B->n)
     {
-        char *aux;
-        int j;
-        aux = malloc((B->n * 2) * sizeof(char));
-        if (aux == NULL)
+        B->n *= 2;
+        B->data = realloc(B->data, B->n * sizeof(char));
+        if (B->data == NULL)
         {
-            //Not enough memory to reallocate buffer
-            printf("Unable to reallocate Buffer: Out of memory");
-            buffer_destroy(B);
-            exit(-1);
+            free(B->data);
+            free(B);
+            die("Out of memory: failed to reallocate Bufferi\n");
         }
-        for (j = 0; j < B->n; j++)
-            aux[j] = B->data[j];
-        B->n = B->n * 2;
-        free(B->data);
-        B->data = aux;
-        free(aux);
     }
 
 	B->data[B->i] = c;
