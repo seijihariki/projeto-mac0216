@@ -5,56 +5,56 @@
 
 int main(int argc, char *argv[])
 {
-    int c, linec = 0, colNum, OK = 1, lastc = 0, firstc = 0, spc, i;
+    int c, linec = 0, charNum, OK = 1, lastc = 0, firstc = 0, spc, i;
     FILE *input, *output;
     Buffer *line;
     line =  buffer_create();
 
-    set_prog_name("Center");
+    set_prog_name("center");
 
     if (argc < 4) 
         die("Too few arguments supplied, expected 3.\n");
 
     else if (argc > 4) 
         die("Too many arguments supplied, expected 3.\n");
-    sscanf(argv[3], "%d", &c);
+
+    c = atoi(argv[3]);
+
     input = fopen(argv[1], "r");
+    if (input == 0)
+        die("Error loading input file '%s'.\n", argv[1]);
     output = fopen(argv[2], "w+");
+    if (output == 0)
+        die("Error opening output file '%s'.\n", argv[2]);
+
     line = buffer_create();
 
     while(OK)
     {
-        colNum = read_line(input, line);
-        if (colNum > 0 && colNum <= c)
+        charNum = read_line(input, line);
+        if (charNum > 0 && charNum <= c)
         {
-            for (i = 0; isspace(line->data[i]) > 0 && i < colNum ; i++);
+            for (i = 0; isspace(line->data[i]) > 0 && i < charNum ; i++);
             firstc = i;
-            for (i += 1; i < colNum - 1; i++)
+            for (i += 1; i < charNum - 1; i++)
             {
-                if(isspace(line->data[i]) > 0  && isspace(line->data[i + 1]) > 0)
-                {
+                if (!isspace(line->data[i]))
                     lastc = i;
-                    break;
-                }
             }
-            if (lastc == 0)
-                lastc = i;
-            spc = (c - (lastc - firstc))/2;
-            for (i = spc; i > 0; i--)
-                fprintf(output, " ");
-            for (i = firstc; i <= lastc; i--)
-                fprintf(output, "%c", line->data[i]);
-            for (i = spc; i > 0; i--)
-                fprintf(output, " ");
-            fprintf(output, "\n");
-            
 
+                printf("lalaallalalalla %d \n", i);
+            spc = ((c - (lastc - firstc))/2) + 1;
+            for (i = spc; i > 0; i--)
+                fprintf(output, " ");
+            for (i = firstc; i <= lastc; i++)
+                fprintf(output, "%c", line->data[i]);
+            fprintf(output, "\n");
         }
         else
             OK = 0;
     }
 
-    if (colNum > c)
+    if (charNum > c)
         die(" %s: line %d: line too long.\n", argv[1], linec);
     
 }
