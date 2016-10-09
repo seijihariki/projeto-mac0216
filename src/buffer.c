@@ -1,6 +1,7 @@
 #include "buffer.h"
 #include "error.h"
 #include <stdio.h>
+#include <ctype.h>
 #include <stdlib.h>
 
 Buffer *buffer_create()
