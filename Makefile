@@ -1,6 +1,8 @@
 
 CC:=gcc
-CFLAGS:=-Wall -std=c99 -O2
+CFLAGS=-Wall -std=c99
+DEBUGF:=-g
+RELEASEF:=-O2
 
 INCDIR:=include
 SRCDIR:=src
@@ -10,29 +12,35 @@ BINDIR:=bin
 TESTSRC:=testsrc
 TESTBIN:=testbin
 
-# Make all
+POSTP=
 
-all: tests
+# Make rules
+
+release: CFLAGS+=$(RELEASEF)
+release: tests$(POSTP)
+
+debug: CFLAGS+=$(DEBUGF)
+debug: tests$(POSTP)
 
 # Make tests
 
-tests: $(TESTBIN)/center $(TESTBIN)/freq
+tests$(POSTP): $(TESTBIN)/center$(POSTP) $(TESTBIN)/freq$(POSTP)
 
-$(TESTBIN)/center: $(OBJDIR)/center.o $(OBJDIR)/buffer.o $(OBJDIR)/error.o
+$(TESTBIN)/center$(POSTP): $(OBJDIR)/center$(POSTP).o $(OBJDIR)/buffer$(POSTP).o $(OBJDIR)/error$(POSTP).o
 	$(CC) $(CFLAGS) -o $@ $^
 
-$(TESTBIN)/freq: $(OBJDIR)/freq.o $(OBJDIR)/stable.o $(OBJDIR)/error.o
+$(TESTBIN)/freq$(POSTP): $(OBJDIR)/freq$(POSTP).o $(OBJDIR)/stable$(POSTP).o $(OBJDIR)/error$(POSTP).o
 	$(CC) $(CFLAGS) -o $@ $^
 
 # General rules
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.c $(INCDIR)/%.h
+$(OBJDIR)/%$(POSTP).o: $(SRCDIR)/%.c $(INCDIR)/%.h
 	$(CC) $(CFLAGS) -c $< -o $@ -I$(INCDIR)
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.c
+$(OBJDIR)/%$(POSTP).o: $(SRCDIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@ -I$(INCDIR)
 
-$(OBJDIR)/%.o: $(TESTSRC)/%.c
+$(OBJDIR)/%$(POSTP).o: $(TESTSRC)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@ -I$(INCDIR)
 
 # Upload to git
