@@ -7,14 +7,19 @@
 #ifndef __STABLE_H__
 #define __STABLE_H__
 
+#include "asmtypes.h"
+
 // The symbol table.
 typedef struct stable_s *SymbolTable;
 
 // Data stored.
 typedef union {
   int i;
+  octa s;
+  uocta u;
   char *str;
   void *p;
+  Operand *opd;
 } EntryData;
 
 // Return struct for stable_insert.
@@ -57,9 +62,8 @@ EntryData *stable_find(SymbolTable table, const char *key);
 /*
   Visit each entry on the table.
 
-  The visit function is called on each entry, with pointers to its key
-  and data. If the visit function returns zero, then the iteration
-  stops.
+  The visit function is called on each entry, with the key and the
+  data. If the visit function returns zero, then the iteration stops.
 
   Returns zero if the iteration was stopped by the visit function,
   nonzero otherwise.
