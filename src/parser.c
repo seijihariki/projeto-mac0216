@@ -153,11 +153,20 @@ Instruction *parseCommand(const char *command, int sz, SymbolTable alias_table, 
         {
             instruction->label = (char *)emalloc((word_len + 1) * sizeof(char));
             strcpy(instruction->label, word);
+            InsertionResult res;
+            if (!(res = stable_insert(alias_table, word)).new)
+            {
+                set_error_msg("Label already exists.");
+                if (errptr)
+                    *errptr = curr;
+                return 0;
+            }
         }
         else
         {
             set_error_msg("Is not a label nor an operator.");
-            if (errptr) *errptr = curr;
+            if (errptr)
+                *errptr = curr;
             return 0;
         }
     }
@@ -182,7 +191,8 @@ Instruction *parseCommand(const char *command, int sz, SymbolTable alias_table, 
     else
     {
         set_error_msg("No operator found.");
-        if (errptr) *errptr = curr + word_len - 1;
+        if (errptr)
+            *errptr = curr + word_len - 1;
         return 0;
     }
 
@@ -194,18 +204,27 @@ Instruction *parseCommand(const char *command, int sz, SymbolTable alias_table, 
 
         if (instruction->opds[i]->type == LABEL)
         {
-            if (!stable_find (alias_table, word))
+            EntryData *alias;
+            if (!(alias = stable_find(alias_table, word)))
             {
                 set_error_msg("Label does not exist.");
-                if (errptr) *errptr = curr;
+                if (errptr)
+                    *errptr = curr;
                 return 0;
+            }
+            else if ((instruction->op->opd_types[i] != ADDR2) &&
+                     (instruction->op->opd_types[i] != ADDR3))
+            {
+                free(instruction->opds[i]);
+                instruction->opds[i] = alias->opd;
             }
         }
 
         if (!instruction->opds[i])
         {
             set_error_msg("Operand can't be an operator.");
-            if (errptr) *errptr = curr;
+            if (errptr)
+                *errptr = curr;
             return 0;
         }
 
@@ -218,12 +237,15 @@ Instruction *parseCommand(const char *command, int sz, SymbolTable alias_table, 
     free((char *)word);
     int opcnt = 0;
     for (int j = 0; j < 3; j++)
-        if(instruction->op->opd_types[j]) opcnt++;
+        if (instruction->op->opd_types[j])
+            opcnt++;
+
     if (i < opcnt)
     {
         set_error_msg("Expected operand.");
         // ERRADO, PRECISA APONTAR DEPOIS DA ULTIMA PALAVRA
-        if (errptr) *errptr = command + sz;
+        if (errptr)
+            *errptr = command + sz;
         return 0;
     }
 
