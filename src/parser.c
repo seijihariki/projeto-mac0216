@@ -156,6 +156,8 @@ Instruction *parseCommand(const char *command, int sz, SymbolTable alias_table, 
             InsertionResult res;
             if (!(res = stable_insert(alias_table, word)).new)
             {
+                // Check if op is IS or not
+                res.data->opd = 0;
                 set_error_msg("Label already exists.");
                 if (errptr)
                     *errptr = curr;
