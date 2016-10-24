@@ -191,6 +191,8 @@ Instruction *parseCommand(const char *command, int sz)
         word = readWord(curr, &word_len);
     }
 
+    free((char *)word);
+
     return instruction;
 }
 
