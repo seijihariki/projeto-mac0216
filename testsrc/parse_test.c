@@ -6,7 +6,7 @@ int main()
 {
     SymbolTable alias_table = stable_create();
     Instruction **instr = malloc(2 * sizeof(Instruction *));
-    parse("teste DIV  a,$0;  MUL a,    5, $2", alias_table, instr, 0);
+    parse("teste DIV     $0,$0,h70;  MUL $2,    5, $2", alias_table, instr, 0);
     for (int l = 0; l < 2; l++)
     {
         printf("label    = \"%s\"\n", instr[l]->label);

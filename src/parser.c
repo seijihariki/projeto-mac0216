@@ -99,6 +99,8 @@ int operandType(const char *w)
 
 Operand *makeOperand(const char *word, int word_len)
 {
+    if (optable_find(word))
+        return 0;
     switch (operandType(word))
     {
     case REGISTER:
@@ -132,7 +134,7 @@ Operand *makeOperand(const char *word, int word_len)
     return 0;
 }
 
-Instruction *parseCommand(const char *command, int sz)
+Instruction *parseCommand(const char *command, int sz, SymbolTable alias_table, const char **errptr)
 {
     printf("%s\n", command);
     Instruction *instruction = (Instruction *)emalloc(sizeof(struct instruction_s));
@@ -154,7 +156,9 @@ Instruction *parseCommand(const char *command, int sz)
         }
         else
         {
-            printf("PROBLEMAS 1a palavra nao e operador nem label\n");
+            set_error_msg("Is not a label nor an operator.");
+            if (errptr) *errptr = curr;
+            return 0;
         }
     }
     free((char *)word);
@@ -177,13 +181,33 @@ Instruction *parseCommand(const char *command, int sz)
         instruction->op = op;
     else
     {
-        // PROBLEMAS Nenhuma das palavras anteriores é operador
+        set_error_msg("No operator found.");
+        if (errptr) *errptr = curr + word_len - 1;
+        return 0;
     }
 
     // Remaining words
-    for (int i = 0; i < 3 && curr && curr < command + sz; i++)
+    int i;
+    for (i = 0; i < 3 && curr && curr < command + sz; i++)
     {
         instruction->opds[i] = makeOperand(word, word_len);
+
+        if (instruction->opds[i]->type == LABEL)
+        {
+            if (!stable_find (alias_table, word))
+            {
+                set_error_msg("Label does not exist.");
+                if (errptr) *errptr = curr;
+                return 0;
+            }
+        }
+
+        if (!instruction->opds[i])
+        {
+            set_error_msg("Operand can't be an operator.");
+            if (errptr) *errptr = curr;
+            return 0;
+        }
 
         free((char *)word);
         curr += word_len;
@@ -192,6 +216,16 @@ Instruction *parseCommand(const char *command, int sz)
     }
 
     free((char *)word);
+    int opcnt = 0;
+    for (int j = 0; j < 3; j++)
+        if(instruction->op->opd_types[j]) opcnt++;
+    if (i < opcnt)
+    {
+        set_error_msg("Expected operand.");
+        // ERRADO, PRECISA APONTAR DEPOIS DA ULTIMA PALAVRA
+        if (errptr) *errptr = command + sz;
+        return 0;
+    }
 
     return instruction;
 }
@@ -207,7 +241,7 @@ int parse(const char *s, SymbolTable alias_table, Instruction **instr,
         if (next)
         {
             int command_len = getCommand(next);
-            instr[instruction_index++] = parseCommand(next, command_len);
+            instr[instruction_index++] = parseCommand(next, command_len, alias_table, errptr);
             next += command_len;
         }
     } while (next);
