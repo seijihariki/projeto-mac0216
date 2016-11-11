@@ -32,7 +32,7 @@ $(TESTBIN)/center$(POSTP): $(OBJDIR)/center$(POSTP).o $(OBJDIR)/buffer$(POSTP).o
 $(TESTBIN)/freq$(POSTP): $(OBJDIR)/freq$(POSTP).o $(OBJDIR)/stable$(POSTP).o $(OBJDIR)/error$(POSTP).o
 	$(CC) $(CFLAGS) -o $@ $^
 
-$(TESTBIN)/parse_test$(POSTP): $(OBJDIR)/parse_test$(POSTP).o $(OBJDIR)/stable$(POSTP).o $(OBJDIR)/parser$(POSTP).o $(OBJDIR)/error$(POSTP).o $(OBJDIR)/asmtypes$(POSTP).o $(OBJDIR)/optable$(POSTP).o
+$(TESTBIN)/parse_test$(POSTP): $(OBJDIR)/buffer.o $(OBJDIR)/parse_test$(POSTP).o $(OBJDIR)/stable$(POSTP).o $(OBJDIR)/parser$(POSTP).o $(OBJDIR)/error$(POSTP).o $(OBJDIR)/asmtypes$(POSTP).o $(OBJDIR)/optable$(POSTP).o
 	$(CC) $(CFLAGS) -o $@ $^
 
 # General rules

@@ -133,6 +133,9 @@ EntryData *stable_find(SymbolTable table, const char *key)
         // If current character is equal to current node's
         if(*keychar == currnode->value)
         {
+            // If is the last character, exit loop
+            if (!*(keychar + 1))
+                break;
             // Key does not exist if node non-existent
             if(!currnode->middle) return NULL;
 
@@ -156,7 +159,7 @@ EntryData *stable_find(SymbolTable table, const char *key)
     if(!currnode->value) return NULL;
 
     if(!currnode->last_node) return NULL;
-    else return &currnode->data;
+    else return &(currnode->data);
 }
 
 // Side recursive function for iterating table entries

@@ -11,6 +11,12 @@
 
 typedef unsigned char byte;
 
+/* Struct representing a number. It has a value and its type (Depending on  *
+ * the value read. Only used by the functions parseNumber and makeOperand.  *
+ *                                                                          *
+ * Variables:                                                               *
+ * val: Value of the number.                                                *
+ * type: Type of the number (BYTE1, BYTE2... etc)                           */
 typedef struct number_str_s
 {
     octa val;
@@ -23,7 +29,7 @@ typedef struct number_str_s
  * c: Pointer to the start of the command                                   *
  *                                                                          *
  * Returns:                                                                 *
- * Size of command fount at given pointer                                  */
+ * Size of command fount at given pointer                                   */
 int getCommand(const char *c)
 {
     int sz = 0;
@@ -49,7 +55,7 @@ int getWord(const char *w)
         is_str = 1;
         w++;
     }
-    for (; *w && ((*w != '*' && !isspace(*w) && *w != ',' && *w != ';')
+    for (; *w && *w != 10 && ((*w != '*' && !isspace(*w) && *w != ',' && *w != ';')
                 || (is_str && (*w != '"' || *(w - 1) == '\\'))); w++)
         sz++;
     return sz;
@@ -69,7 +75,7 @@ const char *nextWord(const char *w, char expect, const char **error)
 {
     const char *ptr = w;
     byte found = 0;
-    for (; *ptr && *ptr != '*' && (isspace(*ptr) || *ptr == ',' || *ptr == ';');
+    for (; *ptr && *ptr != 10 && *ptr != '*' && (isspace(*ptr) || (expect && *ptr == expect));
          ptr++)
     {
         if (*ptr == expect)
@@ -127,7 +133,7 @@ const char *readWord(const char *w, int *wl)
 number_str parseNumber(const char *w)
 {
     number_str val;
-    if (isdigit(w[0]) || w[0] == '#')
+    if (isdigit(w[0]) || w[0] == '#' || w[0] == '-')
     {
         if (w[0] == '#')
             sscanf(w, "#%llx", &val.val);
@@ -137,17 +143,17 @@ number_str parseNumber(const char *w)
         if (val.val < 0)
         {
             if ((val.val & 0xffff80) == 0xffff80)
-                val.type = BYTE1;
+                val.type = BYTE1 | BYTE2 | BYTE3 | TETRABYTE;
             else if ((val.val & 0xff8000) == 0xff8000)
-                val.type = BYTE2;
-            else val.type = BYTE3;
+                val.type = BYTE2 | BYTE3 | TETRABYTE;
+            else val.type = BYTE3 | TETRABYTE;
             val.type |= NEG_NUMBER;
         } else {
             if (val.val & 0xff0000)
-                val.type = BYTE3;
+                val.type = BYTE3 | TETRABYTE;
             else if (val.val & 0x00ff00)
-                val.type = BYTE2;
-            else val.type = BYTE1;
+                val.type = BYTE2 | BYTE3 | TETRABYTE;
+            else val.type = BYTE1 | BYTE2 | BYTE3 | TETRABYTE;
         }
     }
     return val;
@@ -172,7 +178,7 @@ OperandType operandType(const char *w)
 
     if (w[0] == '$')
     {
-        if (operandType(w + 1) == NUMBER_TYPE)
+        if (operandType(w + 1) & BYTE1)
             return REGISTER;
         else return -1;
     }
@@ -184,14 +190,14 @@ OperandType operandType(const char *w)
             if (!isxdigit(w[i]))
                 return -1;
         }
-        return NUMBER_TYPE;
-    } else if (isdigit(w[0])){
+        return parseNumber(w).type;
+    } else if (isdigit(w[0]) || w[0] == '-'){
         for (int i = 1; i < wlen; i++)
         {
             if (!isdigit(w[i]))
                 return -1;
         }
-        return NUMBER_TYPE;
+        return parseNumber(w).type;
     }
 
     if (w[0] == '"')
@@ -233,18 +239,16 @@ Operand *makeOperand(const char *word)
 {
     if (optable_find(word))
         return 0;
-    switch (operandType(word))
+
+    unsigned int type = operandType(word);
+
+    switch (type)
     {
     case REGISTER:
     {
         number_str number = parseNumber(word + 1);
-        return operand_create_register(number.val);
-        break;
-    }
-    case NUMBER_TYPE:
-    {
-        number_str number = parseNumber(word);
-        return operand_create_number(number.val);
+        if (!(number.type & NEG_NUMBER) && (number.type & BYTE1))
+            return operand_create_register(number.val);
         break;
     }
     case LABEL:
@@ -258,28 +262,37 @@ Operand *makeOperand(const char *word)
     default:
         break;
     }
+
+    if (type & NUMBER_TYPE)
+    {
+        number_str number = parseNumber(word);
+        return operand_create_number(number.val);
+    }
     return 0;
 }
 
 Instruction *parseCommand(const char *command, int sz, SymbolTable alias_table, const char **errptr)
 {
-    // REDOING
     char *label = 0;
     const Operator * operator = 0;
     Operand *opds[3];
     for (int i = 0; i < 3; i++) opds[i] = 0;
 
     int wl;
+    const char *empty = nextWord(command, ';', 0);
+    if (empty)
+        return 0;
+
     const char *current = nextWord(command, 0, errptr);
     if (errptr && *errptr)
     {
         //DID NOT EXPECT
+        set_error_msg("Unexpected character");
         return 0;
     }
 
     // First word
     const char *first_w = readWord(current, &wl);
-    current += wl;
     operator = optable_find(first_w);
 
     if (!operator)
@@ -288,15 +301,18 @@ Instruction *parseCommand(const char *command, int sz, SymbolTable alias_table, 
         if (stable_find(alias_table, first_w))
         {
             //ALREADY IN TABLE
+            set_error_msg("Alias already declared");
             free((char*)first_w);
             return 0;
         }
     }
 
+    current += wl;
     current = nextWord(current, 0, errptr);
     if (errptr && *errptr)
     {
         //DID NOT EXPECT
+        set_error_msg("Unexpected character");
         free((char*)first_w);
         return 0;
     }
@@ -305,11 +321,11 @@ Instruction *parseCommand(const char *command, int sz, SymbolTable alias_table, 
     if (label)
     {
         const char *second_w = readWord(current, &wl);
-        current += wl;
         operator = optable_find(second_w);
         if (!operator)
         {
             //NO OPERATOR
+            set_error_msg("No operator found");
             free((char*)first_w);
             free((char*)second_w);
             if (errptr)
@@ -317,10 +333,23 @@ Instruction *parseCommand(const char *command, int sz, SymbolTable alias_table, 
             return 0;
         }
 
+        if (operator->opcode == EXTERN)
+        {
+            //LABELED EXTERN
+            set_error_msg("EXTERN cannot have a label");
+            free((char*)first_w);
+            free((char*)second_w);
+            if (errptr)
+                *errptr = current;
+            return 0;
+        }
+
+        current += wl;
         current = nextWord(current, 0, errptr);
         if (errptr && *errptr)
         {
             //DID NOT EXPECT
+            set_error_msg("Unexpected character");
             free((char*)first_w);
             free((char*)second_w);
             if (errptr)
@@ -336,15 +365,15 @@ Instruction *parseCommand(const char *command, int sz, SymbolTable alias_table, 
     for (i = 0; i < 3 && operator->opd_types[i] != OP_NONE && current; i++)
     {
         const char *word = readWord(current, &wl);
-        current += wl;
         Operand *opd = 0;
         OperandType optype = operandType(word);
-        if (optype == LABEL)
+        if (optype == LABEL && operator->opd_types[i] != LABEL)
         {
             EntryData *data;
             if (!(data = stable_find(alias_table, word)))
             {
                 //LABEL DOES NOT EXIST
+                set_error_msg("Label not declared");
                 free((char*)first_w);
                 free((char*)word);
                 if (errptr)
@@ -358,6 +387,7 @@ Instruction *parseCommand(const char *command, int sz, SymbolTable alias_table, 
         if (!(optype & operator->opd_types[i]))
         {
             //WRONG OPERAND TYPE
+            set_error_msg("Wrong operand type");
             free((char*)first_w);
             free((char*)word);
             if (errptr)
@@ -370,6 +400,8 @@ Instruction *parseCommand(const char *command, int sz, SymbolTable alias_table, 
 
         opds[i] = opd;
         free((char*)word);
+
+        current += wl;
         if (i < 2 && operator->opd_types[i + 1] != OP_NONE)
             current = nextWord(current, ',', errptr);
     }
@@ -377,6 +409,7 @@ Instruction *parseCommand(const char *command, int sz, SymbolTable alias_table, 
     if (i < 2 && operator->opd_types[i + 1] != OP_NONE)
     {
         //EXPECTED OPERAND
+        set_error_msg("Too few operands for this operator");
         free((char*)first_w);
         for (int j = 0; j < 3; j++)
             free(opds[i]);
@@ -400,24 +433,30 @@ int parse(const char *s, SymbolTable alias_table, Instruction **instr,
           const char **errptr)
 {
     const char *next = s;
-    int instruction_index = 0;
     next = nextWord(s, 0, 0);
+    Instruction *last = *instr;
     do
     {
+        for (; last && last->next; last = last->next);
         if (next)
         {
             int command_len = getCommand(next);
-            instr[instruction_index++] = parseCommand(next, command_len, alias_table, errptr);
+            Instruction *tmp = parseCommand(next, command_len, alias_table, errptr);
+            if (!last)
+                last = *instr = tmp;
+            else last->next = tmp;
             next += command_len;
         }
-        next = nextWord(next,';', errptr);
+
+        next = nextWord(next, ';', errptr);
         if (errptr && *errptr)
         {
-            if (**errptr == '*')
+            if (**errptr == '*' || **errptr == '\n')
             {
                 *errptr = 0;
                 return 1;
             }
+            return 0;
         }
     } while (next);
 

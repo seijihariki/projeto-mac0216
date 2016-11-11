@@ -1,0 +1,7 @@
+testx	MUL	$1, $0, 6
+	EXTERN	main
+teste	IS	$1
+wow	IS	#5
+
+main	DIV	$0, teste, wow
+	ADD	$1, teste, teste
