@@ -5,10 +5,14 @@
 int main()
 {
     SymbolTable alias_table = stable_create();
-    Instruction **instr = malloc(2 * sizeof(Instruction *));
-    parse("teste DIV     $0,$0,h70;  MUL $2,    5, $2", alias_table, instr, 0);
-    for (int l = 0; l < 2; l++)
+    Instruction **instr = malloc(4 * sizeof(Instruction *));
+    const char *errptr = 0;
+    parse("a IS $27; teste DIV     $0,$0,#70;  MUL $2,    $5, #20; ADD $6, a, $5", alias_table, instr, &errptr);
+    for (int l = 0; l < 4; l++)
     {
+        if (!instr[l])
+        {
+        }
         printf("label    = \"%s\"\n", instr[l]->label);
         printf("operator = %s\n", instr[l]->op->name);
         printf("operands = ");

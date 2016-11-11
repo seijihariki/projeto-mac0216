@@ -33,6 +33,7 @@ SymbolTable stable_create()
 // Destroy a given symbol table.
 void stable_destroy(SymbolTable table)
 {
+    if (!table) return;
     stable_destroy(table->lower);
     stable_destroy(table->middle);
     stable_destroy(table->higher);
