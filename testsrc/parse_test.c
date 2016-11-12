@@ -46,12 +46,53 @@ int main(int argc, char **argv)
     while (read_line(file, line))
     {
         if (!parse(line->data, alias_table, &init, &errptr))
+        {
+            printf("%s", line->data);
+            for (int i = 0; i < (unsigned int)((errptr - line->data)/sizeof(char)); i++)
+                printf((line->data[i] == '\t')?"\t":" ");
+            printf("^\n");
+            print_error_msg(0);
             break;
-        if (!init) init = current;
+        } else {
+            if (!current && init)
+                current = init;
+            else if (current && current->next)
+                current = current->next;
+            else continue;
+
+            printf("line     = %s", line->data);
+            printf("label    = \"%s\"\n", current->label);
+            printf("operator = %s\n", current->op->name);
+            printf("operands = ");
+            for (int i = 0; i < 3; i++)
+            {
+                if (current->opds[i])
+                {
+                    if (i != 0)
+                        printf(", ");
+                    switch (current->opds[i]->type)
+                    {
+                    case REGISTER:
+                        printf("Register(%u)", current->opds[i]->value.reg);
+                        break;
+                    case NUMBER_TYPE:
+                        printf("Number(%lld)", current->opds[i]->value.num);
+                        break;
+                    case LABEL:
+                        printf("Label(\"%s\")", current->opds[i]->value.label);
+                        break;
+                    case STRING:
+                        printf("String(%s)", current->opds[i]->value.str);
+                        break;
+                    }
+                }
+            }
+            printf("\n\n");
+        }
     }
 
     Instruction *ext_check = 0;
-    for (current = init; current; current = current->next)
+    for (current = init; current && !errptr; current = current->next)
     {
         if (current->op->opcode == EXTERN)
         {
@@ -60,8 +101,7 @@ int main(int argc, char **argv)
             {
                 if (ext_check->label && !strcmp(ext_check->label, current->opds[0]->value.label))
                 {
-                    if (ext_check->op->opcode != IS)
-                        ok = 1;
+                    if (ext_check->op->opcode != IS) ok = 1;
                     else
                         die ("Extern cannot point to IS instruction\n");
                 }
@@ -74,42 +114,7 @@ int main(int argc, char **argv)
 
     for (current = init; current; current = current->next)
     {
-        if(errptr)
-        {
-            printf("%s", line->data);
-            for (int i = 0; i < (unsigned int)((errptr - line->data)/sizeof(char)); i++)
-                printf((line->data[i] == '\t')?"\t":" ");
-            printf("^\n");
-            die(0);
-        }
-        printf("line     = %s\n", line->data);
-        printf("label    = \"%s\"\n", current->label);
-        printf("operator = %s\n", current->op->name);
-        printf("operands = ");
-        for (int i = 0; i < 3; i++)
-        {
-            if (current->opds[i])
-            {
-                if (i != 0)
-                    printf(", ");
-                switch (current->opds[i]->type)
-                {
-                case REGISTER:
-                    printf("Register(%u)", current->opds[i]->value.reg);
-                    break;
-                case NUMBER_TYPE:
-                    printf("Number(%lld)", current->opds[i]->value.num);
-                    break;
-                case LABEL:
-                    printf("Label(\"%s\")", current->opds[i]->value.label);
-                    break;
-                case STRING:
-                    printf("String(%s)", current->opds[i]->value.str);
-                    break;
-                }
-            }
-        }
-        printf("\n\n");
+       
     }
 
     // Destroy all

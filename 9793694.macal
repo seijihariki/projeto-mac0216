@@ -1,0 +1,192 @@
+*        EXTERN  main
+
+cols    IS      $10
+c       IS      $11
+pos     IS      $13
+
+spaces  IS      $14
+r       IS      $15
+g       IS      $16
+b       IS      $17
+dist    IS      $18
+spc     IS      $19
+ll      IS      $20
+z       IS      $21
+lchar   IS      $22
+
+i       IS      $50
+
+cm      IS      $51
+tmp     IS      $52
+
+main    NOP
+        SUBU    cols,rSP,16
+        LDOU    cols,cols,0
+        PUSH    cols
+        CALL    strint
+        ADDU    cols,rA,0
+        SETW    pos,0
+        PUSH    pos
+        CALL    loadt
+
+        SETW    rX,2
+       
+w1_i    SETW    spaces,0
+        SETW    r,0
+        SETW    g,0
+        SETW    b,1
+        SETW    dist,0
+        SETW    i,0
+        SETW    ll,0
+
+        LDBU    c,pos,i
+f1_i    JZ      c,f1_e
+        CMP     cm,i,cols
+        JNN     cm,f1_e
+        LDBU    c,pos,i
+
+ix_i    CMP     cm,lchar,10
+        JNZ     cm,ix_e
+        CMP     cm,c,10
+        JNZ     cm,ix_e
+        SETW    ll,1
+        JMP     f1_e
+ix_e    NOP
+
+i1_i    CMP     cm,c,32
+        JNZ     cm,i1_e
+        ADDU    spaces,spaces,1
+i1_e    NOP
+
+        ADDU    lchar,c,0
+
+        ADD     i,i,1
+        JMP     f1_i
+f1_e    NOP
+
+iy_i    JZ ll,iy_e
+        PUSH    pos
+        CALL    prl
+        ADD     pos,pos,i
+        JMP     w1ev
+iy_e    NOP
+
+i2_i    LDBU    cm,pos,i
+        JZ      cm,i2el
+        CMP     cm,cm,32
+        JZ      cm,i2el
+
+f2_i    CMP     cm,b,i
+        JP      cm,f2_e
+        ADD     tmp,pos,i
+        SUB     tmp,tmp,b
+        LDBU    c,tmp,1
+
+i3_i    CMP     cm,c,32
+        JNZ     cm,i3_e
+        JMP     f2_e
+i3_e    NOP
+
+        ADDU    b,b,1
+        JMP     f2_i
+f2_e    NOP
+        
+        SUB     i,i,b
+
+i4_i    JNN     i,i4el
+        
+w2_i    ADD     tmp,pos,i
+        LDBU    tmp,tmp,1
+        CMP     cm,tmp,32
+        JZ      cm,w2_e
+        ADD     i,i,1
+        JMP     w2_i
+w2_e    NOP
+
+        JMP     i4_e
+i4el    SUB     dist,b,1
+        SUBU    spaces,spaces,1
+
+i5_i    JZ      spaces,i5_e
+        DIVU    g,dist,spaces
+        ADDU    r,rR,0
+i5_e    NOP
+
+i4_e    NOP
+        JMP     i2_e
+i2el    SUB     i,i,1
+i2_e    NOP
+
+        SETW    spc,0
+        ADD     i,i,pos
+
+        ADD     z,pos,0
+f3_i    CMP     cm,z,i
+        JP      cm,f3_e
+        LDBU    c,z,0
+
+i6_i    CMP     cm,c,10
+        JZ      c,i6_c
+        JZ      cm,i6_c
+        JMP     i6_e
+i6_c    SETW    ll,1
+i6_e    NOP
+
+        ADDU    z,z,1
+        JMP     f3_i
+f3_e    NOP
+
+f4_i    CMP     cm,pos,i
+        JP      cm,f4_e
+
+        LDBU    c,pos,0
+
+i7_i    CMP     cm,c,32
+        JNZ     cm,i7el
+        JNZ     ll,i7el
+
+        ADDU    spc,spc,1
+
+        SETW    z,0
+f5_i    ADDU    tmp,g,1
+        CMP     cm,z,tmp
+        JNN     cm,f5_e
+        SETW    rY,32
+        INT     #80
+        ADD     z,z,1
+        JMP     f5_i
+f5_e    NOP
+
+i8_i    SUB     tmp,spaces,r
+        CMP     cm,spc,tmp
+        JNP     cm,i8_e
+        SETW    rY,32
+        INT     #80
+i8_e    NOP
+
+        JMP     i7_e
+i7el    ADDU    rY,c,0
+        JZ      rY,i7_e
+        INT     #80
+i7_e    NOP
+
+i9_i    JNZ     c,i9_e
+        JMP     f4_e
+i9_e    NOP
+
+        ADD     pos,pos,1
+        JMP     f4_i 
+f4_e    NOP
+
+i0_i    JNZ     ll,i0_e
+        SETW    rY,10
+        INT     #80
+i0_e    NOP
+
+w1ev    ADDU    pos,pos,1
+
+        LDBU    tmp,pos,0
+        JNZ     tmp,w1_i
+w1_e    NOP
+
+end     INT     0

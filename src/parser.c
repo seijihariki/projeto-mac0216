@@ -367,7 +367,7 @@ Instruction *parseCommand(const char *command, int sz, SymbolTable alias_table, 
         const char *word = readWord(current, &wl);
         Operand *opd = 0;
         OperandType optype = operandType(word);
-        if (optype == LABEL && operator->opd_types[i] != LABEL)
+        if (optype == LABEL && !(operator->opd_types[i] & LABEL))
         {
             EntryData *data;
             if (!(data = stable_find(alias_table, word)))
@@ -432,16 +432,42 @@ Instruction *parseCommand(const char *command, int sz, SymbolTable alias_table, 
 int parse(const char *s, SymbolTable alias_table, Instruction **instr,
           const char **errptr)
 {
+    *errptr = 0;
     const char *next = s;
     next = nextWord(s, 0, 0);
     Instruction *last = *instr;
+    if (!stable_find(alias_table, "rA"))
+        stable_insert(alias_table, "rA").data->opd = operand_create_register(255);
+    if (!stable_find(alias_table, "rR"))
+        stable_insert(alias_table, "rR").data->opd = operand_create_register(254);
+    if (!stable_find(alias_table, "rSP"))
+        stable_insert(alias_table, "rSP").data->opd = operand_create_register(253);
+    if (!stable_find(alias_table, "rX"))
+        stable_insert(alias_table, "rX").data->opd = operand_create_register(252);
+    if (!stable_find(alias_table, "rY"))
+        stable_insert(alias_table, "rY").data->opd = operand_create_register(251);
+    if (!stable_find(alias_table, "rZ"))
+        stable_insert(alias_table, "rZ").data->opd = operand_create_register(250);
     do
     {
         for (; last && last->next; last = last->next);
         if (next)
         {
             int command_len = getCommand(next);
-            Instruction *tmp = parseCommand(next, command_len, alias_table, errptr);
+            Instruction *tmp = 0;
+            if (command_len) tmp = parseCommand(next, command_len, alias_table, errptr);
+            if (errptr && *errptr)
+            {
+                if (**errptr == '*' || **errptr == '\n')
+                {
+                    *errptr = 0;
+                    break;
+                }
+                printf("ERROR: %s\n", *errptr);
+            }
+            if (errptr && *errptr)
+                return 0;
+
             if (!last)
                 last = *instr = tmp;
             else last->next = tmp;
