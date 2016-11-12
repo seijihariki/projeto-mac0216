@@ -381,7 +381,7 @@ Instruction *parseCommand(const char *command, int sz, SymbolTable alias_table, 
                 return 0;
             }
             optype = data->opd->type;
-            opd = data->opd;
+            opd = operand_dup(data->opd);
         }
 
         if (!(optype & operator->opd_types[i]))

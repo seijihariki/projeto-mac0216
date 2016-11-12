@@ -19,6 +19,13 @@ void instructions_destroy(Instruction **instr_list)
     }
 }
 
+int del_item(const char* key, EntryData *data)
+{
+    if (data->opd)
+        free(data->opd);
+    return 1;
+}
+
 int main(int argc, char **argv)
 {
     if (argc < 2)
@@ -44,7 +51,6 @@ int main(int argc, char **argv)
     }
 
     Instruction *ext_check = 0;
-
     for (current = init; current; current = current->next)
     {
         if (current->op->opcode == EXTERN)
@@ -105,10 +111,11 @@ int main(int argc, char **argv)
         }
         printf("\n\n");
     }
- 
+
     // Destroy all
     instructions_destroy(&init);
     buffer_destroy(line);
+    stable_visit(alias_table, del_item);
     stable_destroy(alias_table);
     fclose(file);
 }
