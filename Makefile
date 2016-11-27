@@ -1,4 +1,3 @@
-
 CC:=gcc
 CFLAGS=-Wall -std=c99
 DEBUGF:=-g
@@ -12,38 +11,55 @@ BINDIR:=bin
 TESTSRC:=testsrc
 TESTBIN:=testbin
 
-POSTP=
+DEBUG_POST:=-d
+RELEASE_POST:=
+
+# Auto dependency and tests finder
+
+DEPS:=$(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(wildcard $(SRCDIR)/*.c))
+TESTS:=$(patsubst $(TESTSRC)/%.c, $(TESTBIN)/%, $(wildcard $(TESTSRC)/*.c))
 
 # Make rules
 
 release: CFLAGS+=$(RELEASEF)
-release: tests$(POSTP)
+release: tests$(RELEASE_POST)
 
 debug: CFLAGS+=$(DEBUGF)
-debug: tests$(POSTP)
+debug: tests$(DEBUG_POST)
 
 # Make tests
 
-tests$(POSTP): $(TESTBIN)/center$(POSTP) $(TESTBIN)/freq$(POSTP) $(TESTBIN)/parse_test$(POSTP)
+tests$(RELEASE_POST): $(patsubst %, %$(RELEASE_POST), $(TESTS))
+tests$(DEBUG_POST): $(patsubst %, %$(DEBUG_POST), $(TESTS))
 
-$(TESTBIN)/center$(POSTP): $(OBJDIR)/center$(POSTP).o $(OBJDIR)/buffer$(POSTP).o $(OBJDIR)/error$(POSTP).o
+$(TESTBIN)/%$(RELEASE_POST): $(OBJDIR)/%$(RELEASE_POST).o $(patsubst %, %$(RELEASE_POST), $(DEPS))
 	$(CC) $(CFLAGS) -o $@ $^
 
-$(TESTBIN)/freq$(POSTP): $(OBJDIR)/freq$(POSTP).o $(OBJDIR)/stable$(POSTP).o $(OBJDIR)/error$(POSTP).o
-	$(CC) $(CFLAGS) -o $@ $^
-
-$(TESTBIN)/parse_test$(POSTP): $(OBJDIR)/buffer.o $(OBJDIR)/parse_test$(POSTP).o $(OBJDIR)/stable$(POSTP).o $(OBJDIR)/parser$(POSTP).o $(OBJDIR)/error$(POSTP).o $(OBJDIR)/asmtypes$(POSTP).o $(OBJDIR)/optable$(POSTP).o
+$(TESTBIN)/%$(DEBUG_POST): $(OBJDIR)/%$(DEBUG_POST).o $(patsubst %, %$(RELEASE_POST), $(DEPS))
 	$(CC) $(CFLAGS) -o $@ $^
 
 # General rules
 
-$(OBJDIR)/%$(POSTP).o: $(SRCDIR)/%.c $(INCDIR)/%.h
+# For release
+
+$(OBJDIR)/%$(RELEASE_POST).o: $(SRCDIR)/%.c $(INCDIR)/%.h
 	$(CC) $(CFLAGS) -c $< -o $@ -I$(INCDIR)
 
-$(OBJDIR)/%$(POSTP).o: $(SRCDIR)/%.c
+$(OBJDIR)/%$(RELEASE_POST).o: $(SRCDIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@ -I$(INCDIR)
 
-$(OBJDIR)/%$(POSTP).o: $(TESTSRC)/%.c
+$(OBJDIR)/%$(RELEASE_POST).o: $(TESTSRC)/%.c
+	$(CC) $(CFLAGS) -c $< -o $@ -I$(INCDIR)
+
+# For debug
+
+$(OBJDIR)/%$(DEBUG_POST).o: $(SRCDIR)/%.c $(INCDIR)/%.h
+	$(CC) $(CFLAGS) -c $< -o $@ -I$(INCDIR)
+
+$(OBJDIR)/%$(DEBUG_POST).o: $(SRCDIR)/%.c
+	$(CC) $(CFLAGS) -c $< -o $@ -I$(INCDIR)
+
+$(OBJDIR)/%$(DEBUG_POST).o: $(TESTSRC)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@ -I$(INCDIR)
 
 # Upload to git
