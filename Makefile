@@ -98,6 +98,6 @@ configure:
 	mkdir -p $(SRCDIR)
 	mkdir -p $(OBJDIR)
 	mkdir -p $(BINDIR)
-	mkdir -p $(EXECDIR)
+	mkdir -p $(EXECSRC)
 	mkdir -p $(TESTSRC)
 	mkdir -p $(TESTBIN)
