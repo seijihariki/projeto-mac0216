@@ -1,7 +1,7 @@
 #include "buffer.h"
 #include "error.h"
-#include <stdio.h>
 #include <ctype.h>
+#include <stdio.h>
 
 int main(int argc, char *argv[])
 {
@@ -9,14 +9,14 @@ int main(int argc, char *argv[])
     int c, linec = 0, charNum, OK = 1, lastc = 0, firstc = 0, spc, i;
     FILE *input, *output;
     Buffer *line;
-    line =  buffer_create();
+    line = buffer_create();
 
     set_prog_name("center");
     //checks the numbere of arguments
-    if (argc < 4) 
+    if (argc < 4)
         die("Too few arguments supplied, expected 3.\n");
 
-    else if (argc > 4) 
+    else if (argc > 4)
         die("Too many arguments supplied, expected 3.\n");
     //pick column number from arguments
     c = atoi(argv[3]);
@@ -31,17 +31,18 @@ int main(int argc, char *argv[])
 
     line = buffer_create();
 
-    while(OK)
+    while (OK)
     {
         linec++;
         charNum = read_line(input, line);
-        //if the line has zero chars 
+        //if the line has zero chars
         if (charNum == 0)
             OK = 0;
-        
+
         else
-        {   //find the first non-space char
-            for (i = 0; isspace(line->data[i]) > 0 && i < charNum ; i++);
+        { //find the first non-space char
+            for (i = 0; isspace(line->data[i]) > 0 && i < charNum; i++)
+                ;
             firstc = i;
             //find the last non-space char
             for (i += 1; i < charNum - 1; i++)
@@ -53,19 +54,18 @@ int main(int argc, char *argv[])
             if ((lastc - firstc) > c)
                 break;
             //calculates numbere of spaces for centering
-            spc = ((c - (lastc - firstc))/2) + 1;
+            spc = ((c - (lastc - firstc)) / 2) + 1;
             //prints everything
             for (i = spc; i > 0; i--)
                 fprintf(output, " ");
-        
+
             for (i = firstc; i <= lastc; i++)
                 fprintf(output, "%c", line->data[i]);
-        
+
             fprintf(output, "\n");
         }
     }
     //show message error for line too long
     if ((lastc - firstc) > c)
         die(" %s: line %d: line too long.\n", argv[1], linec);
-    
 }

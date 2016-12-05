@@ -55,8 +55,7 @@ int getWord(const char *w)
         is_str = 1;
         w++;
     }
-    for (; *w && *w != 10 && ((*w != '*' && !isspace(*w) && *w != ',' && *w != ';')
-                || (is_str && (*w != '"' || *(w - 1) == '\\'))); w++)
+    for (; *w && *w != 10 && ((*w != '*' && !isspace(*w) && *w != ',' && *w != ';') || (is_str && (*w != '"' || *(w - 1) == '\\'))); w++)
         sz++;
     return sz;
 }
@@ -84,13 +83,15 @@ const char *nextWord(const char *w, char expect, const char **error)
 
     if (!found && expect)
     {
-        if(error) *error = (char*) ptr;
+        if (error)
+            *error = (char *)ptr;
         return 0;
     }
 
     if (!*ptr)
     {
-        if(error) *error = 0;
+        if (error)
+            *error = 0;
         ptr = 0;
     }
     return ptr;
@@ -146,14 +147,18 @@ number_str parseNumber(const char *w)
                 val.type = BYTE1 | BYTE2 | BYTE3 | TETRABYTE;
             else if ((val.val & 0xff8000) == 0xff8000)
                 val.type = BYTE2 | BYTE3 | TETRABYTE;
-            else val.type = BYTE3 | TETRABYTE;
+            else
+                val.type = BYTE3 | TETRABYTE;
             val.type |= NEG_NUMBER;
-        } else {
+        }
+        else
+        {
             if (val.val & 0xff0000)
                 val.type = BYTE3 | TETRABYTE;
             else if (val.val & 0x00ff00)
                 val.type = BYTE2 | BYTE3 | TETRABYTE;
-            else val.type = BYTE1 | BYTE2 | BYTE3 | TETRABYTE;
+            else
+                val.type = BYTE1 | BYTE2 | BYTE3 | TETRABYTE;
         }
     }
     return val;
@@ -180,7 +185,8 @@ OperandType operandType(const char *w)
     {
         if (operandType(w + 1) & BYTE1)
             return REGISTER;
-        else return -1;
+        else
+            return -1;
     }
 
     if (w[0] == '#')
@@ -191,7 +197,9 @@ OperandType operandType(const char *w)
                 return -1;
         }
         return parseNumber(w).type;
-    } else if (isdigit(w[0]) || w[0] == '-'){
+    }
+    else if (isdigit(w[0]) || w[0] == '-')
+    {
         for (int i = 1; i < wlen; i++)
         {
             if (!isdigit(w[i]))
@@ -206,7 +214,7 @@ OperandType operandType(const char *w)
             return -1;
         for (int i = 1; i < wlen - 1; i++)
         {
-            if (w[i] == '\\' && !w[wlen-2])
+            if (w[i] == '\\' && !w[wlen - 2])
                 return -1;
             if (w[i] == '"' && w[i - 1] != '\\')
                 return -1;
@@ -225,7 +233,6 @@ OperandType operandType(const char *w)
     }
     return -1;
 }
-
 
 /* Creates new operand object from string given to it. Returns 0 in case of *
  * error. (String doesn't represent any operand)                            *
@@ -274,9 +281,10 @@ Operand *makeOperand(const char *word)
 Instruction *parseCommand(const char *command, int sz, SymbolTable alias_table, const char **errptr)
 {
     char *label = 0;
-    const Operator * operator = 0;
+    const Operator *operator= 0;
     Operand *opds[3];
-    for (int i = 0; i < 3; i++) opds[i] = 0;
+    for (int i = 0; i < 3; i++)
+        opds[i] = 0;
 
     int wl;
     const char *empty = nextWord(command, ';', 0);
@@ -293,16 +301,16 @@ Instruction *parseCommand(const char *command, int sz, SymbolTable alias_table, 
 
     // First word
     const char *first_w = readWord(current, &wl);
-    operator = optable_find(first_w);
+    operator= optable_find(first_w);
 
     if (!operator)
     {
-        label = (char*) first_w;
+        label = (char *)first_w;
         if (stable_find(alias_table, first_w))
         {
             //ALREADY IN TABLE
             set_error_msg("Alias already declared");
-            free((char*)first_w);
+            free((char *)first_w);
             return 0;
         }
     }
@@ -313,7 +321,7 @@ Instruction *parseCommand(const char *command, int sz, SymbolTable alias_table, 
     {
         //DID NOT EXPECT
         set_error_msg("Unexpected character");
-        free((char*)first_w);
+        free((char *)first_w);
         return 0;
     }
 
@@ -321,13 +329,13 @@ Instruction *parseCommand(const char *command, int sz, SymbolTable alias_table, 
     if (label)
     {
         const char *second_w = readWord(current, &wl);
-        operator = optable_find(second_w);
+        operator= optable_find(second_w);
         if (!operator)
         {
             //NO OPERATOR
             set_error_msg("No operator found");
-            free((char*)first_w);
-            free((char*)second_w);
+            free((char *)first_w);
+            free((char *)second_w);
             if (errptr)
                 *errptr = current;
             return 0;
@@ -337,8 +345,8 @@ Instruction *parseCommand(const char *command, int sz, SymbolTable alias_table, 
         {
             //LABELED EXTERN
             set_error_msg("EXTERN cannot have a label");
-            free((char*)first_w);
-            free((char*)second_w);
+            free((char *)first_w);
+            free((char *)second_w);
             if (errptr)
                 *errptr = current;
             return 0;
@@ -350,14 +358,14 @@ Instruction *parseCommand(const char *command, int sz, SymbolTable alias_table, 
         {
             //DID NOT EXPECT
             set_error_msg("Unexpected character");
-            free((char*)first_w);
-            free((char*)second_w);
+            free((char *)first_w);
+            free((char *)second_w);
             if (errptr)
                 *errptr = current;
             return 0;
         }
 
-        free((char*)second_w);
+        free((char *)second_w);
     }
 
     // Remaining words
@@ -367,15 +375,15 @@ Instruction *parseCommand(const char *command, int sz, SymbolTable alias_table, 
         const char *word = readWord(current, &wl);
         Operand *opd = 0;
         OperandType optype = operandType(word);
-        if (optype == LABEL && !(operator->opd_types[i] & LABEL))
+        if (optype == LABEL && !(operator->opd_types[i] &LABEL))
         {
             EntryData *data;
             if (!(data = stable_find(alias_table, word)))
             {
                 //LABEL DOES NOT EXIST
                 set_error_msg("Label not declared");
-                free((char*)first_w);
-                free((char*)word);
+                free((char *)first_w);
+                free((char *)word);
                 if (errptr)
                     *errptr = current;
                 return 0;
@@ -388,8 +396,8 @@ Instruction *parseCommand(const char *command, int sz, SymbolTable alias_table, 
         {
             //WRONG OPERAND TYPE
             set_error_msg("Wrong operand type");
-            free((char*)first_w);
-            free((char*)word);
+            free((char *)first_w);
+            free((char *)word);
             if (errptr)
                 *errptr = current;
             return 0;
@@ -399,7 +407,7 @@ Instruction *parseCommand(const char *command, int sz, SymbolTable alias_table, 
             opd = makeOperand(word);
 
         opds[i] = opd;
-        free((char*)word);
+        free((char *)word);
 
         current += wl;
         if (i < 2 && operator->opd_types[i + 1] != OP_NONE)
@@ -410,7 +418,7 @@ Instruction *parseCommand(const char *command, int sz, SymbolTable alias_table, 
     {
         //EXPECTED OPERAND
         set_error_msg("Too few operands for this operator");
-        free((char*)first_w);
+        free((char *)first_w);
         for (int j = 0; j < 3; j++)
             free(opds[i]);
         if (errptr)
@@ -450,12 +458,14 @@ int parse(const char *s, SymbolTable alias_table, Instruction **instr,
         stable_insert(alias_table, "rZ").data->opd = operand_create_register(250);
     do
     {
-        for (; last && last->next; last = last->next);
+        for (; last && last->next; last = last->next)
+            ;
         if (next)
         {
             int command_len = getCommand(next);
             Instruction *tmp = 0;
-            if (command_len) tmp = parseCommand(next, command_len, alias_table, errptr);
+            if (command_len)
+                tmp = parseCommand(next, command_len, alias_table, errptr);
             if (errptr && *errptr)
             {
                 if (**errptr == '*' || **errptr == '\n')
@@ -469,8 +479,27 @@ int parse(const char *s, SymbolTable alias_table, Instruction **instr,
                 return 0;
 
             if (!last)
+            {
                 last = *instr = tmp;
-            else last->next = tmp;
+                if (last)
+                {
+                    if (last->op->opcode != IS)
+                        last->lineno = 0;
+                    else
+                        last->lineno = -1;
+                }
+            }
+            else
+            {
+                last->next = tmp;
+                if (last->next)
+                {
+                    if (last->next->op->opcode != IS)
+                        last->next->lineno = last->lineno + 1;
+                    else
+                        last->next->lineno = last->lineno;
+                }
+            }
             next += command_len;
         }
 

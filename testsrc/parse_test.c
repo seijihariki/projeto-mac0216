@@ -1,12 +1,12 @@
-#include "parser.h"
-#include "stable.h"
 #include "buffer.h"
 #include "error.h"
+#include "parser.h"
+#include "stable.h"
 
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 
 void instructions_destroy(Instruction **instr_list)
 {
@@ -19,7 +19,7 @@ void instructions_destroy(Instruction **instr_list)
     }
 }
 
-int del_item(const char* key, EntryData *data)
+int del_item(const char *key, EntryData *data)
 {
     if (data->opd)
         free(data->opd);
@@ -48,19 +48,23 @@ int main(int argc, char **argv)
         if (!parse(line->data, alias_table, &init, &errptr))
         {
             printf("%s", line->data);
-            for (int i = 0; i < (unsigned int)((errptr - line->data)/sizeof(char)); i++)
-                printf((line->data[i] == '\t')?"\t":" ");
+            for (int i = 0; i < (unsigned int)((errptr - line->data) / sizeof(char)); i++)
+                printf((line->data[i] == '\t') ? "\t" : " ");
             printf("^\n");
             print_error_msg(0);
             break;
-        } else {
+        }
+        else
+        {
             if (!current && init)
                 current = init;
             else if (current && current->next)
                 current = current->next;
-            else continue;
+            else
+                continue;
 
             printf("line     = %s", line->data);
+            printf("line No  = %d\n", current->lineno);
             printf("label    = \"%s\"\n", current->label);
             printf("operator = %s\n", current->op->name);
             printf("operands = ");
@@ -101,20 +105,19 @@ int main(int argc, char **argv)
             {
                 if (ext_check->label && !strcmp(ext_check->label, current->opds[0]->value.label))
                 {
-                    if (ext_check->op->opcode != IS) ok = 1;
+                    if (ext_check->op->opcode != IS)
+                        ok = 1;
                     else
-                        die ("Extern cannot point to IS instruction\n");
+                        die("Extern cannot point to IS instruction\n");
                 }
             }
             if (!ok)
-                die ("Extern label %s never defined\n", current->opds[0]->value.label);
+                die("Extern label %s never defined\n", current->opds[0]->value.label);
         }
     }
 
-
     for (current = init; current; current = current->next)
     {
-       
     }
 
     // Destroy all

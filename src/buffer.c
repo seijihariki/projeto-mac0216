@@ -1,7 +1,7 @@
 #include "buffer.h"
 #include "error.h"
-#include <stdio.h>
 #include <ctype.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 Buffer *buffer_create()
@@ -12,7 +12,7 @@ Buffer *buffer_create()
     B->data = emalloc(B->n * sizeof(char));
     B->i = 0;
     return B;
-} 
+}
 
 void buffer_destroy(Buffer *B)
 {
@@ -22,8 +22,8 @@ void buffer_destroy(Buffer *B)
 
 void buffer_reset(Buffer *B)
 {
-	for (; B->i > 0; (B->i)--)
-		B->data[B->i] = 0;
+    for (; B->i > 0; (B->i)--)
+        B->data[B->i] = 0;
 }
 
 void buffer_push_back(Buffer *B, char c)
@@ -41,16 +41,15 @@ void buffer_push_back(Buffer *B, char c)
         }
     }
 
-	B->data[B->i] = c;
+    B->data[B->i] = c;
     B->i++;
-    
 }
 
 int read_line(FILE *input, Buffer *B)
 {
     int c = 0, cnum = 0;
     buffer_reset(B);
-    while(c != 10 && c != EOF)
+    while (c != 10 && c != EOF)
     {
         c = fgetc(input);
         if (c != EOF)
