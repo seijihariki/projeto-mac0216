@@ -19,7 +19,7 @@ RELEASE_POST:=
 
 DEPS:=$(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(wildcard $(SRCDIR)/*.c))
 TESTS:=$(patsubst $(TESTSRC)/%.c, $(TESTBIN)/%, $(wildcard $(TESTSRC)/*.c))
-EXECS:=$(patsubst $(EXECSRC)/%.c, $(BIN)/%, $(wildcard $(EXECSRC)/*.c))
+EXECS:=$(patsubst $(EXECSRC)/%.c, $(BINDIR)/%, $(wildcard $(EXECSRC)/*.c))
 
 # Make rules
 
@@ -36,10 +36,10 @@ debug: tests$(DEBUG_POST)
 execs$(RELEASE_POST): $(patsubst %, %$(RELEASE_POST), $(EXECS))
 execs$(DEBUG_POST): $(patsubst %, %$(DEBUG_POST), $(EXECS))
 
-$(BIN)/%$(RELEASE_POST): $(OBJDIR)/%$(RELEASE_POST).o $(patsubst %, %$(RELEASE_POST), $(DEPS))
+$(BINDIR)/%$(RELEASE_POST): $(OBJDIR)/%$(RELEASE_POST).o $(patsubst %, %$(RELEASE_POST), $(DEPS))
 	$(CC) $(CFLAGS) -o $@ $^
 
-$(BIN)/%$(DEBUG_POST): $(OBJDIR)/%$(DEBUG_POST).o $(patsubst %, %$(RELEASE_POST), $(DEPS))
+$(BINDIR)/%$(DEBUG_POST): $(OBJDIR)/%$(DEBUG_POST).o $(patsubst %, %$(RELEASE_POST), $(DEPS))
 	$(CC) $(CFLAGS) -o $@ $^
 
 # Make tests
@@ -66,6 +66,9 @@ $(OBJDIR)/%$(RELEASE_POST).o: $(SRCDIR)/%.c
 $(OBJDIR)/%$(RELEASE_POST).o: $(TESTSRC)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@ -I$(INCDIR)
 
+$(OBJDIR)/%$(RELEASE_POST).o: $(EXECSRC)/%.c
+	$(CC) $(CFLAGS) -c $< -o $@ -I$(INCDIR)
+
 # For debug
 
 $(OBJDIR)/%$(DEBUG_POST).o: $(SRCDIR)/%.c $(INCDIR)/%.h
@@ -75,6 +78,9 @@ $(OBJDIR)/%$(DEBUG_POST).o: $(SRCDIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@ -I$(INCDIR)
 
 $(OBJDIR)/%$(DEBUG_POST).o: $(TESTSRC)/%.c
+	$(CC) $(CFLAGS) -c $< -o $@ -I$(INCDIR)
+
+$(OBJDIR)/%$(DEBUG_POST).o: $(EXECSRC)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@ -I$(INCDIR)
 
 # Upload to git
