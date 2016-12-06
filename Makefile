@@ -7,6 +7,7 @@ INCDIR:=include
 SRCDIR:=src
 OBJDIR:=obj
 BINDIR:=bin
+DEPDIR:=deps
 
 EXECSRC:=execsrc
 TESTSRC:=testsrc
@@ -21,6 +22,13 @@ DEPS:=$(patsubst $(SRCDIR)/%.c, $(OBJDIR)/%.o, $(wildcard $(SRCDIR)/*.c))
 TESTS:=$(patsubst $(TESTSRC)/%.c, $(TESTBIN)/%, $(wildcard $(TESTSRC)/*.c))
 EXECS:=$(patsubst $(EXECSRC)/%.c, $(BINDIR)/%, $(wildcard $(EXECSRC)/*.c))
 
+# Don't erase dependency and object files
+
+.PRECIOUS: $(OBJDIR)/%$(RELEASE_POST).o
+.PRECIOUS: $(OBJDIR)/%$(DEBUG_POST).o
+
+.PRECIOUS: $(DEPDIR)/%$(RELEASE_POST).d
+.PRECIOUS: $(DEPDIR)/%$(DEBUG_POST).d
 # Make rules
 
 release: CFLAGS+=$(RELEASEF)
@@ -54,6 +62,8 @@ $(TESTBIN)/%$(DEBUG_POST): $(OBJDIR)/%$(DEBUG_POST).o $(patsubst %, %$(RELEASE_P
 	$(CC) $(CFLAGS) -o $@ $^
 
 # General rules
+
+# For dependency file generation
 
 # For release
 
@@ -104,6 +114,7 @@ configure:
 	mkdir -p $(SRCDIR)
 	mkdir -p $(OBJDIR)
 	mkdir -p $(BINDIR)
+	mkdir -p $(DEPDIR)
 	mkdir -p $(EXECSRC)
 	mkdir -p $(TESTSRC)
 	mkdir -p $(TESTBIN)
