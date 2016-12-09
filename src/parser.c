@@ -398,7 +398,7 @@ int parse(const char *s, SymbolTable alias_table, Instruction **instr,
                 last = *instr = tmp;
                 if (last)
                 {
-                    if (last->op->opcode != IS)
+                    if (last->op->opcode != IS && last->op->opcode != EXTERN)
                         last->lineno = 0;
                     else
                         last->lineno = -1;
@@ -409,7 +409,7 @@ int parse(const char *s, SymbolTable alias_table, Instruction **instr,
                 last->next = tmp;
                 if (last->next)
                 {
-                    if (last->next->op->opcode != IS)
+                    if (last->next->op->opcode != IS && last->op->opcode != EXTERN)
                         last->next->lineno = last->lineno + 1;
                     else
                         last->next->lineno = last->lineno;

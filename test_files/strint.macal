@@ -1,0 +1,15 @@
+        EXTERN strint
+s       IS  $32
+c       IS  $31
+
+strint  SETW    rA,0
+        SUBU    s,rSP,16
+        LDOU    s,s,0
+conv    LDB     c,s,0
+        JZ      c,end
+        MULU    rA,rA,10
+        SUBU    c,c,48
+        ADDU    rA,rA,c
+        ADDU    s,s,1
+        JMP     conv
+end     RET     1

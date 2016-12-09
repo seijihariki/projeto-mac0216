@@ -1,0 +1,20 @@
+		EXTERN 	prl
+
+ptr		IS		$70
+lc		IS		$71
+cm 		IS		$72
+
+prl		SUBU    ptr,rSP,16
+		LDOU    ptr,ptr,0
+        SETW    rX,2
+loop	LDBU	rY,ptr,0
+		INT		#80
+		CMP		cm,lc,10
+		JNZ		cm,cont
+		CMP		cm,rY,10
+		JNZ		cm,cont
+		JMP		end
+cont	ADDU	ptr,ptr,1
+		ADDU	lc,rY,0
+		JMP		loop
+end		RET		1

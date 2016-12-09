@@ -1,4 +1,4 @@
-*        EXTERN  main
+        EXTERN  main
 
 cols    IS      $10
 c       IS      $11
