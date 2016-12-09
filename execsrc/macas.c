@@ -193,9 +193,7 @@ int main(int argc, char *argv[])
         {
             InsertionResult res = stable_insert(label_table, current->label);
             if (res.new)
-            {
                 res.data->i = curr_instr;
-            }
         }
 
         switch (current->op->opcode)
@@ -257,16 +255,17 @@ int main(int argc, char *argv[])
                     operator++;
                     value = -value;
                 } else {
-                    Instruction curr_t;
+                    Instruction *curr_t;
                     int cnt = 0;
                     int finval = 0;
-                    for (curr_t = current->next; curr_t && cnt < value; cnt++, curr_t = curr_t->next)
+                    for (curr_t = current->next; curr_t && cnt < value - 1; cnt++, curr_t = curr_t->next)
                     {
                         if (curr_t->op->opcode == CALL)
                             finval += 4;
                         else if (curr_t->op->opcode == PUSH)
                             finval += 2;
-                        else if ()
+                        else if (curr_t->op->opcode == RET)
+                            finval += 4;
                         else
                             finval++;
                     }
@@ -293,6 +292,21 @@ int main(int argc, char *argv[])
                 {
                     operator++;
                     value = -value;
+                } else {
+                    Instruction *curr_t;
+                    int cnt = 0;
+                    int finval = 0;
+                    for (curr_t = current->next; curr_t && cnt < value - 1; cnt++, curr_t = curr_t->next)
+                    {
+                        if (curr_t->op->opcode == CALL)
+                            finval += 4;
+                        else if (curr_t->op->opcode == PUSH)
+                            finval += 2;
+                        else if (curr_t->op->opcode == RET)
+                            finval += 4;
+                        else
+                            finval++;
+                    }
                 }
                 machine_code = create_instr_d((operator << 24) +
                         (current->opds[0]->value.reg << 16) + (0xffff & value));
@@ -304,14 +318,34 @@ int main(int argc, char *argv[])
             break;
         }
         default:
-        break;
+        {
+
+            break;
+        }
         }
     }
 
-
-    for (current = init; current; current = current->next)
+    curr_instr = 0;
+    for (Instr *pointer = compiled; pointer; pointer = pointer->next)
     {
-        //fazer codigo de percorrer a lista ligada
+        if (pointer->opcode)
+        {
+            EntryData *entry;
+            if (!(entry = stable_find(label_table, pointer->data.alias)))
+                fprintf(outfile, "* %d %s\n", pointer->opcode, pointer->data.alias);
+            else {
+                unsigned char operator = pointer->opcode;
+                int delta_l = entry->i - curr_instr;
+                if (delta_l < 0)
+                {
+                    operator++;
+                    delta_l = -delta_l;
+                }
+            }
+        } else {
+            fprintf(outfile, "%08x\n", pointer->data.code);
+        }
+        curr_instr++;
     }
 
     //verificar se mantem esse erro
