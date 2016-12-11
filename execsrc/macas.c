@@ -262,7 +262,7 @@ int main(int argc, char *argv[])
                     machine_code = create_instr_d(0x56fa0000);
                     append_instr(&compiled, machine_code);
                     curr_instr += 3;
-            break;
+                    break;
 
                 }
             case JMP:
@@ -435,9 +435,8 @@ int main(int argc, char *argv[])
                     operator++;
                     delta_l = -delta_l;
                 }
-                
                 printf ("%s %d\n", pointer->data.alias, entry->i);
-                unsigned int code = ((0xff & operator) << 24) + (0xffffff & delta_l);
+                unsigned int code = ((0xff & operator) << 24) + ((0xff & pointer->reg) << 16) + (0xffffff & delta_l);
                 fprintf(outfile, "%08x\n", code);
             }
         } else {
