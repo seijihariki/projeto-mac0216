@@ -306,10 +306,10 @@ int main(int argc, char *argv[])
             case JNP:
                 {
                     Instr *machine_code;
+                    int operator = current->op->opcode;
                     if (current->opds[1]->type & (BYTE2 | NEG_NUMBER))
                     {
                         octa value = current->opds[1]->value.num;
-                        int operator = current->op->opcode;
                         if (current->opds[1]->type == NEG_NUMBER)
                         {
                             operator++;
@@ -334,7 +334,7 @@ int main(int argc, char *argv[])
                                 (current->opds[0]->value.reg << 16) + (0xffff & value));
                     } else
                         machine_code = create_instr_i(current->opds[1]->value.label,
-                                0x48,
+                                operator,
                                 current->opds[0]->value.reg);
                     append_instr(&compiled, machine_code);
                     break;
