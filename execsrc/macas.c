@@ -435,6 +435,7 @@ int main(int argc, char *argv[])
                     operator++;
                     delta_l = -delta_l;
                 }
+                
                 printf ("%s %d\n", pointer->data.alias, entry->i);
                 unsigned int code = ((0xff & operator) << 24) + (0xffffff & delta_l);
                 fprintf(outfile, "%08x\n", code);
