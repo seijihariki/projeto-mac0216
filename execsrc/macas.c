@@ -185,8 +185,9 @@ int main(int argc, char *argv[])
     }
 
     Instruction *ext_check = 0;
-    for (current = init; current && !errptr; current = current->next)
+    for (current = init; current; current = current->next)
     {
+        printf("OPCODE: %s\n", current->op->name);
         if (current->op->opcode == EXTERN)
         {
             int ok = 0;
