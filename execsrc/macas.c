@@ -169,25 +169,22 @@ int main(int argc, char *argv[])
 
     const char *errptr = 0;
 
+    // Creates linked list of instructions, handling errors when necessary
     while (read_line(file, line))
     {
-        //isso aqui cria uma linked list com as instruçoes e elas tem lineno
-        //ja :)
         if (!parse(line->data, alias_table, &init, &errptr))
         {
             printf("%s", line->data);
             for (int i = 0; i < (unsigned int)((errptr - line->data) / sizeof(char)); i++)
                 printf((line->data[i] == '\t') ? "\t" : " ");
             printf("^\n");
-            print_error_msg(0);
-            break;
+            die(0);
         }
     }
 
     Instruction *ext_check = 0;
     for (current = init; current; current = current->next)
     {
-        printf("OPCODE: %s\n", current->op->name);
         if (current->op->opcode == EXTERN)
         {
             int ok = 0;
@@ -308,6 +305,7 @@ int main(int argc, char *argv[])
             case JP:
             case JN:
             case JNN:
+            case GETA:
             case JNP:
                 {
                     Instr *machine_code;
@@ -425,10 +423,6 @@ int main(int argc, char *argv[])
     for (Instr *pointer = compiled; pointer; pointer = pointer->next)
     {
         if (pointer->opcode)
-            printf ("%d: opcd = %02x, label = %s\n", curr_instr, pointer->opcode, pointer->data.alias);
-        else
-            printf ("%d: opcd = %02x, opds = %06x\n", curr_instr, pointer->data.code >> 24, pointer->data.code & 0xffffff);
-        if (pointer->opcode)
         {
             EntryData *entry;
             if (!(entry = stable_find(label_table, pointer->data.alias)))
@@ -441,7 +435,6 @@ int main(int argc, char *argv[])
                     operator++;
                     delta_l = -delta_l;
                 }
-                printf ("%s %d\n", pointer->data.alias, entry->i);
                 unsigned int code = ((0xff & operator) << 24) + ((0xff & pointer->reg) << 16) + (0xffffff & delta_l);
                 fprintf(outfile, "%08x\n", code);
             }
