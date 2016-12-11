@@ -219,176 +219,176 @@ int main(int argc, char *argv[])
 
         switch (current->op->opcode)
         {
-        case PUSH:
-        {
-            Instr *machine_code = create_instr_d(
-                    0x1f00fd00 +
-                    (current->opds[0]->value.reg << 16));
-            append_instr(&compiled, machine_code);
-
-            machine_code = create_instr_d(0x31fdfd08);
-            append_instr(&compiled, machine_code);
-
-            curr_instr += 2;
-            break;
-        }
-        case CALL:
-        {
-            Instr *machine_code = create_instr_d(0x58fa0004);
-            append_instr(&compiled, machine_code);
-
-            machine_code = create_instr_d(0x1ffafd00);
-            append_instr(&compiled, machine_code);
-
-            machine_code = create_instr_d(0x31fdfd08);
-            append_instr(&compiled, machine_code);
-
-            machine_code = create_instr_i(current->opds[0]->value.label, 0x48, 0);
-            append_instr(&compiled, machine_code);
-
-            curr_instr += 4;
-            break;
-        }
-        case RET:
-        {
-            Instr *machine_code = create_instr_d(0x33fdfd08);
-            append_instr(&compiled, machine_code);
-
-            machine_code = create_instr_d(0x0ffafd00);
-            append_instr(&compiled, machine_code);
-
-            machine_code = create_instr_d(0x33fdfd00 + 8*current->opds[0]->value.num);
-            append_instr(&compiled, machine_code);
-
-            machine_code = create_instr_d(0x56fa0000);
-            append_instr(&compiled, machine_code);
-            break;
-        }
-        case JMP:
-        {
-            Instr *machine_code;
-            if (current->opds[0]->type & (BYTE3 | NEG_NUMBER))
-            {
-                octa value = current->opds[0]->value.num;
-                int operator = JMP;
-                if (current->opds[0]->type == NEG_NUMBER)
+            case PUSH:
                 {
-                    operator++;
-                    value = -value;
-                } else {
-                    Instruction *curr_t;
-                    int cnt = 0;
-                    int finval = 0;
-                    for (curr_t = current->next; curr_t && cnt < value - 1; cnt++, curr_t = curr_t->next)
-                    {
-                        if (curr_t->op->opcode == CALL)
-                            finval += 4;
-                        else if (curr_t->op->opcode == PUSH)
-                            finval += 2;
-                        else if (curr_t->op->opcode == RET)
-                            finval += 4;
-                        else
-                            finval++;
-                    }
+                    Instr *machine_code = create_instr_d(
+                            0x1f00fd00 +
+                            (current->opds[0]->value.reg << 16));
+                    append_instr(&compiled, machine_code);
+
+                    machine_code = create_instr_d(0x31fdfd08);
+                    append_instr(&compiled, machine_code);
+
+                    curr_instr += 2;
+                    break;
                 }
-                machine_code = create_instr_d((operator << 24) + (0xffffff & value));
-            } else
-                machine_code = create_instr_i(current->opds[0]->value.label, 0x48, 0);
-            append_instr(&compiled, machine_code);
-            break;
-        }
-        case JZ:
-        case JNZ:
-        case JP:
-        case JN:
-        case JNN:
-        case JNP:
-        {
-            Instr *machine_code;
-            if (current->opds[1]->type & (BYTE2 | NEG_NUMBER))
-            {
-                octa value = current->opds[1]->value.num;
-                int operator = current->op->opcode;
-                if (current->opds[1]->type == NEG_NUMBER)
+            case CALL:
                 {
-                    operator++;
-                    value = -value;
-                } else {
-                    Instruction *curr_t;
-                    int cnt = 0;
-                    int finval = 0;
-                    for (curr_t = current->next; curr_t && cnt < value - 1; cnt++, curr_t = curr_t->next)
-                    {
-                        if (curr_t->op->opcode == CALL)
-                            finval += 4;
-                        else if (curr_t->op->opcode == PUSH)
-                            finval += 2;
-                        else if (curr_t->op->opcode == RET)
-                            finval += 4;
-                        else
-                            finval++;
-                    }
+                    Instr *machine_code = create_instr_d(0x58fa0004);
+                    append_instr(&compiled, machine_code);
+
+                    machine_code = create_instr_d(0x1ffafd00);
+                    append_instr(&compiled, machine_code);
+
+                    machine_code = create_instr_d(0x31fdfd08);
+                    append_instr(&compiled, machine_code);
+
+                    machine_code = create_instr_i(current->opds[0]->value.label, 0x48, 0);
+                    append_instr(&compiled, machine_code);
+
+                    curr_instr += 4;
+                    break;
                 }
-                machine_code = create_instr_d((operator << 24) +
-                        (current->opds[0]->value.reg << 16) + (0xffff & value));
-            } else
-                machine_code = create_instr_i(current->opds[1]->value.label,
-                        0x48,
-                        current->opds[0]->value.reg);
-            append_instr(&compiled, machine_code);
-            break;
-        }
-        default:
-        {
-            Instr *machine_code;
-            unsigned char operator = current->op->opcode;
-            if (current->op->opd_types[2])
-            {
-                unsigned char byte1, byte2, byte3;
-                if (current->op->opd_types[0] & REGISTER)
-                    byte1 = current->opds[0]->value.reg;
-                else
-                    byte1 = current->opds[0]->value.num;
+            case RET:
+                {
+                    Instr *machine_code = create_instr_d(0x33fdfd08);
+                    append_instr(&compiled, machine_code);
 
-                if (current->op->opd_types[1] & REGISTER)
-                    byte2 = current->opds[1]->value.reg;
-                else
-                    byte2 = current->opds[1]->value.num;
+                    machine_code = create_instr_d(0x0ffafd00);
+                    append_instr(&compiled, machine_code);
 
-                if (current->op->opd_types[2] & REGISTER)
-                    byte3 = current->opds[2]->value.reg;
-                else
-                    byte3 = current->opds[2]->value.num;
+                    machine_code = create_instr_d(0x33fdfd00 + 8*current->opds[0]->value.num);
+                    append_instr(&compiled, machine_code);
 
-                machine_code = create_instr_d((operator << 24) |
-                        (byte1 << 16) | (byte2 << 8) | byte3);
-            } else if (current->op->opd_types[1])
-            {
-                unsigned char byte1;
-                unsigned short word1;
-                if (current->op->opd_types[0] == REGISTER)
-                    byte1 = current->opds[0]->value.reg;
-                else
-                    byte1 = current->opds[0]->value.num;
+                    machine_code = create_instr_d(0x56fa0000);
+                    append_instr(&compiled, machine_code);
+                    break;
+                }
+            case JMP:
+                {
+                    Instr *machine_code;
+                    if (current->opds[0]->type & (BYTE3 | NEG_NUMBER))
+                    {
+                        octa value = current->opds[0]->value.num;
+                        int operator = JMP;
+                        if (current->opds[0]->type == NEG_NUMBER)
+                        {
+                            operator++;
+                            value = -value;
+                        } else {
+                            Instruction *curr_t;
+                            int cnt = 0;
+                            int finval = 0;
+                            for (curr_t = current->next; curr_t && cnt < value - 1; cnt++, curr_t = curr_t->next)
+                            {
+                                if (curr_t->op->opcode == CALL)
+                                    finval += 4;
+                                else if (curr_t->op->opcode == PUSH)
+                                    finval += 2;
+                                else if (curr_t->op->opcode == RET)
+                                    finval += 4;
+                                else
+                                    finval++;
+                            }
+                        }
+                        machine_code = create_instr_d((operator << 24) + (0xffffff & value));
+                    } else
+                        machine_code = create_instr_i(current->opds[0]->value.label, 0x48, 0);
+                    append_instr(&compiled, machine_code);
+                    break;
+                }
+            case JZ:
+            case JNZ:
+            case JP:
+            case JN:
+            case JNN:
+            case JNP:
+                {
+                    Instr *machine_code;
+                    if (current->opds[1]->type & (BYTE2 | NEG_NUMBER))
+                    {
+                        octa value = current->opds[1]->value.num;
+                        int operator = current->op->opcode;
+                        if (current->opds[1]->type == NEG_NUMBER)
+                        {
+                            operator++;
+                            value = -value;
+                        } else {
+                            Instruction *curr_t;
+                            int cnt = 0;
+                            int finval = 0;
+                            for (curr_t = current->next; curr_t && cnt < value - 1; cnt++, curr_t = curr_t->next)
+                            {
+                                if (curr_t->op->opcode == CALL)
+                                    finval += 4;
+                                else if (curr_t->op->opcode == PUSH)
+                                    finval += 2;
+                                else if (curr_t->op->opcode == RET)
+                                    finval += 4;
+                                else
+                                    finval++;
+                            }
+                        }
+                        machine_code = create_instr_d((operator << 24) +
+                                (current->opds[0]->value.reg << 16) + (0xffff & value));
+                    } else
+                        machine_code = create_instr_i(current->opds[1]->value.label,
+                                0x48,
+                                current->opds[0]->value.reg);
+                    append_instr(&compiled, machine_code);
+                    break;
+                }
+            default:
+                {
+                    Instr *machine_code;
+                    unsigned char operator = current->op->opcode;
+                    if (current->op->opd_types[2])
+                    {
+                        unsigned char byte1, byte2, byte3;
+                        if (current->op->opd_types[0] & REGISTER)
+                            byte1 = current->opds[0]->value.reg;
+                        else
+                            byte1 = current->opds[0]->value.num;
 
-                word1 = current->opds[1]->value.num;
+                        if (current->op->opd_types[1] & REGISTER)
+                            byte2 = current->opds[1]->value.reg;
+                        else
+                            byte2 = current->opds[1]->value.num;
 
-                machine_code = create_instr_d((operator << 24) |
-                        (byte1 << 16) | word1);
-            } else if (current->op->opd_types[0])
-            {
-                unsigned int three1;
-                three1 = current->opds[0]->value.num;
+                        if (current->op->opd_types[2] & REGISTER)
+                            byte3 = current->opds[2]->value.reg;
+                        else
+                            byte3 = current->opds[2]->value.num;
 
-                machine_code = create_instr_d((operator << 24) |
-                        (three1 & 0xffffff));
-            } else {
-                machine_code = create_instr_d(operator << 24);
-            }
+                        machine_code = create_instr_d((operator << 24) |
+                                (byte1 << 16) | (byte2 << 8) | byte3);
+                    } else if (current->op->opd_types[1])
+                    {
+                        unsigned char byte1;
+                        unsigned short word1;
+                        if (current->op->opd_types[0] == REGISTER)
+                            byte1 = current->opds[0]->value.reg;
+                        else
+                            byte1 = current->opds[0]->value.num;
 
-            append_instr(&compiled, machine_code);
-            break;
-        }
+                        word1 = current->opds[1]->value.num;
+
+                        machine_code = create_instr_d((operator << 24) |
+                                (byte1 << 16) | word1);
+                    } else if (current->op->opd_types[0])
+                    {
+                        unsigned int three1;
+                        three1 = current->opds[0]->value.num;
+
+                        machine_code = create_instr_d((operator << 24) |
+                                (three1 & 0xffffff));
+                    } else {
+                        machine_code = create_instr_d(operator << 24);
+                    }
+
+                    append_instr(&compiled, machine_code);
+                    break;
+                }
         }
     }
 
@@ -428,6 +428,8 @@ int main(int argc, char *argv[])
                     operator++;
                     delta_l = -delta_l;
                 }
+                pointer->data.code = (0xffffffff & operator) + (0xffffffff & delta_l);
+                fprintf(outfile, "%08x\n", pointer->data.code);
             }
         } else {
             fprintf(outfile, "%08x\n", pointer->data.code);
