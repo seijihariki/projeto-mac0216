@@ -35,3 +35,7 @@ bin/
 *.exe
 *.out
 *.app
+
+#swap files from vim
+*.swp
+*.swo
