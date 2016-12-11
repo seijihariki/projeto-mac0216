@@ -428,7 +428,7 @@ int main(int argc, char *argv[])
                     operator++;
                     delta_l = -delta_l;
                 }
-                pointer->data.code = (0xffffffff & operator) + (0xffffffff & delta_l);
+                pointer->data.code = (operator << 24) + (0xffffffff & delta_l);
                 fprintf(outfile, "%08x\n", pointer->data.code);
             }
         } else {
