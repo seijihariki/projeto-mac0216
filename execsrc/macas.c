@@ -217,6 +217,9 @@ int main(int argc, char *argv[])
                 res.data->i = curr_instr;
         }
 
+        if (current->op->opcode == IS || current->op->opcode == EXTERN)
+            continue;
+        
         switch (current->op->opcode)
         {
             case PUSH:
@@ -287,7 +290,7 @@ int main(int argc, char *argv[])
                                 else if (curr_t->op->opcode == PUSH)
                                     finval += 2;
                                 else if (curr_t->op->opcode == RET)
-                                    finval += 4;
+                                    finval += 3;
                                 else
                                     finval++;
                             }
@@ -326,7 +329,7 @@ int main(int argc, char *argv[])
                                 else if (curr_t->op->opcode == PUSH)
                                     finval += 2;
                                 else if (curr_t->op->opcode == RET)
-                                    finval += 4;
+                                    finval += 3;
                                 else
                                     finval++;
                             }
@@ -410,6 +413,8 @@ int main(int argc, char *argv[])
             EntryData *entry;
             if ((entry = stable_find(label_table, current->opds[0]->value.label)))
                 fprintf(outfile, "E %s %d\n", current->opds[0]->value.label, entry->i);
+            else
+                die("Extern %s not found!!\n", current->opds[0]->value.label);
         }
     }
 
