@@ -392,11 +392,29 @@ int main(int argc, char *argv[])
         }
     }
 
+    int instr_cnt = 0;
+    for (Instr *pointer = compiled; pointer; pointer = pointer->next) instr_cnt++;
+    fprintf(outfile, "%d\n", instr_cnt);
+
+    for (current = init; current && !errptr; current = current->next)
+    {
+        if (current->op->opcode == EXTERN)
+        {
+            EntryData *entry;
+            if ((entry = stable_find(label_table, current->opds[0]->value.label)))
+                fprintf(outfile, "E %s %d\n", current->opds[0]->value.label, entry->i);
+        }
+    }
+
+    fprintf(outfile, "B\n");
+
     curr_instr = 0;
     for (Instr *pointer = compiled; pointer; pointer = pointer->next)
     {
         if (pointer->opcode)
             printf ("opcd = %d, label = %s\n", pointer->opcode, pointer->data.alias);
+        else
+            printf ("opcd = %d, opds = %d\n", pointer->data.code >> 24, pointer->data.code && 0xffffff);
         if (pointer->opcode)
         {
             EntryData *entry;
