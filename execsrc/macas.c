@@ -276,13 +276,11 @@ int main(int argc, char *argv[])
                     int str_num = 0x00000000;
                     Instr *str_part;
                     unescape(cursor, current->opds[0]->value.str);
-                    printf("%s",cursor);
                     while (*cursor || (str_num & 0xff))
                     {
                         str_num = 0x00000000;
                         for (int i = 0; i < 4; i++)
                             str_num |= *(cursor++) << 8*(3 - i);
-                        printf("%08X\n", str_num);
                         str_part = create_instr_d(str_num);
                         append_instr(&compiled, str_part);
                         curr_instr++;
@@ -517,7 +515,6 @@ int main(int argc, char *argv[])
     instructions_destroy(&init);
     buffer_destroy(line);
     stable_visit(alias_table, del_item);
-    stable_visit(label_table, del_item);
     stable_destroy(label_table);
     stable_destroy(alias_table);
     fclose(file);
