@@ -251,18 +251,19 @@ int main(int argc, char *argv[])
                 }
             case RET:
                 {
-                    Instr *machine_code = create_instr_d(0x33fdfd08);
+                    Instr *machine_code;
+
+                    machine_code = create_instr_d(0x33fdfd08 + 8*current->opds[0]->value.num);
                     append_instr(&compiled, machine_code);
 
-                    machine_code = create_instr_d(0x0ffafd00);
-                    append_instr(&compiled, machine_code);
-
-                    machine_code = create_instr_d(0x33fdfd00 + 8*current->opds[0]->value.num);
+                    machine_code = create_instr_d(0x0ffafd00 + 8*current->opds[0]->value.num);
                     append_instr(&compiled, machine_code);
 
                     machine_code = create_instr_d(0x56fa0000);
                     append_instr(&compiled, machine_code);
-                    break;
+                    curr_instr += 3;
+            break;
+
                 }
             case JMP:
                 {
@@ -305,10 +306,10 @@ int main(int argc, char *argv[])
             case JNP:
                 {
                     Instr *machine_code;
+                    int operator = current->op->opcode;
                     if (current->opds[1]->type & (BYTE2 | NEG_NUMBER))
                     {
                         octa value = current->opds[1]->value.num;
-                        int operator = current->op->opcode;
                         if (current->opds[1]->type == NEG_NUMBER)
                         {
                             operator++;
@@ -333,7 +334,7 @@ int main(int argc, char *argv[])
                                 (current->opds[0]->value.reg << 16) + (0xffff & value));
                     } else
                         machine_code = create_instr_i(current->opds[1]->value.label,
-                                0x48,
+                                operator,
                                 current->opds[0]->value.reg);
                     append_instr(&compiled, machine_code);
                     break;
@@ -412,9 +413,9 @@ int main(int argc, char *argv[])
     for (Instr *pointer = compiled; pointer; pointer = pointer->next)
     {
         if (pointer->opcode)
-            printf ("opcd = %d, label = %s\n", pointer->opcode, pointer->data.alias);
+            printf ("opcd = %x, label = %s\n", pointer->opcode, pointer->data.alias);
         else
-            printf ("opcd = %d, opds = %d\n", pointer->data.code >> 24, pointer->data.code && 0xffffff);
+            printf ("opcd = %x, opds = %x\n", pointer->data.code >> 24, pointer->data.code & 0xffffff);
         if (pointer->opcode)
         {
             EntryData *entry;
