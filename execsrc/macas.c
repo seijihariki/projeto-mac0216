@@ -20,6 +20,11 @@ void instructions_destroy(Instruction **instr_list)
     }
 }
 
+/* Deletes a given item from a given entry data.                            *
+ *                                                                          *
+ * Params:                                                                  *
+ * key: String key of the data.                                             *
+ * data: Entry to be deleted from table.                                    */
 int del_item(const char *key, EntryData *data)
 {
     if (data->opd)
@@ -27,6 +32,10 @@ int del_item(const char *key, EntryData *data)
     return 1;
 }
 
+/* Modifies the file extension to .maco for the generated file.             *
+ *                                                                          *
+ * Params:                                                                  *
+ * input_file: Name of the input file.                                      */
 char* objfile_name(char* input_file)
 {
     int orlen = strlen(input_file);
@@ -142,6 +151,47 @@ Instr* create_instr_d (unsigned int code)
     return ret;
 }
 
+
+/* Handles some escaped characters like \n and \"                           *
+ *                                                                          *
+ * Params:                                                                  *
+ * output: Output string where the result will be put into.                 *
+ * input: Input string that will be varified.                               */
+void unescape(char* output, char* input)
+{
+    char *curr_i = input;
+    char *curr_o = output;
+
+    while (*curr_i)
+    {
+        char out_char = 0;
+        if (*curr_i == '\\')
+        {
+            switch (*(curr_i + 1))
+            {
+                case 'n':
+                    out_char = 0xa;
+                    break;
+                case '"':
+                    out_char = '"';
+                    break;
+                default:
+                    *(curr_o++) = '\\';
+                    out_char = *(curr_i + 1);
+                    break;
+            }
+            curr_i += 2;
+            *(curr_o++) = out_char;
+        }
+        else if (*curr_i == '"')
+            curr_i++;
+        else {
+            out_char = *(curr_i++);
+            *(curr_o++) = out_char;
+        }
+    }
+}
+
 int main(int argc, char *argv[])
 {
     if (argc < 2)
@@ -223,20 +273,19 @@ int main(int argc, char *argv[])
             case STR:
                 {
                     char *cursor = malloc(strlen(current->opds[0]->value.str) * sizeof(char));
-                    int str_num = 0x00000000, i;
+                    int str_num = 0x00000000;
                     Instr *str_part;
-                    cursor = current->opds[0]->value.str;
-                    sprintf (cursor, current->opds[0]->value.str);
-                    printf (cursor);
-                    while (*cursor)
+                    unescape(cursor, current->opds[0]->value.str);
+                    printf("%s",cursor);
+                    while (*cursor || (str_num & 0xff))
                     {
-                        for (i = 0; i < 4; i++, cursor++)
-                        {
-                            if
-                                ((str_num + *cursor) << (3-i) * 8)
-                                    str_part = create_instr_d(str_num);
-                            append_instr(&compiled, str_part);
-                        }
+                        str_num = 0x00000000;
+                        for (int i = 0; i < 4; i++)
+                            str_num |= *(cursor++) << 8*(3 - i);
+                        printf("%08X\n", str_num);
+                        str_part = create_instr_d(str_num);
+                        append_instr(&compiled, str_part);
+                        curr_instr++;
                     }
                     break;
                 }
@@ -468,6 +517,8 @@ int main(int argc, char *argv[])
     instructions_destroy(&init);
     buffer_destroy(line);
     stable_visit(alias_table, del_item);
+    stable_visit(label_table, del_item);
+    stable_destroy(label_table);
     stable_destroy(alias_table);
     fclose(file);
 }
