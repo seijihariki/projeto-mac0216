@@ -217,9 +217,29 @@ int main(int argc, char *argv[])
 
         if (current->op->opcode == IS || current->op->opcode == EXTERN)
             continue;
-        
+
         switch (current->op->opcode)
         {
+            case STR:
+                {
+                    char *cursor = malloc(strlen(current->opds[0]->value.str) * sizeof(char));
+                    int str_num = 0x00000000, i;
+                    Instr *str_part;
+                    cursor = current->opds[0]->value.str;
+                    sprintf (cursor, current->opds[0]->value.str);
+                    printf (cursor);
+                    while (*cursor)
+                    {
+                        for (i = 0; i < 4; i++, cursor++)
+                        {
+                            if
+                                ((str_num + *cursor) << (3-i) * 8)
+                                    str_part = create_instr_d(str_num);
+                            append_instr(&compiled, str_part);
+                        }
+                    }
+                    break;
+                }
             case PUSH:
                 {
                     Instr *machine_code = create_instr_d(

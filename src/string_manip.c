@@ -21,11 +21,14 @@ int getWord(const char *w)
         is_str = 1;
         w++;
     }
-    for (; *w && *w != 10 && ((*w != '*' && !isspace(*w) && *w != ',' && *w != ';') || (is_str && (*w != '"' || *(w - 1) == '\\'))); w++)
+    for (; *w && *w != 10 && ((!is_str && *w != '*' && !isspace(*w) && *w != ',' && *w != ';') || (is_str && (*w != '"' || *(w - 1) == '\\'))); w++)
         sz++;
+
+    if (is_str)
+        sz+=2;
+
     return sz;
 }
-
 /* Returns the pointer to the start of the next word, checking for expected *
  * characters and ignoring spaces.                                          *
  *                                                                          *
@@ -41,7 +44,7 @@ const char *nextWord(const char *w, char expect, const char **error)
     const char *ptr = w;
     byte found = 0;
     for (; *ptr && *ptr != 10 && *ptr != '*' && (isspace(*ptr) || (expect && *ptr == expect));
-         ptr++)
+            ptr++)
     {
         if (*ptr == expect)
             found = 1;
