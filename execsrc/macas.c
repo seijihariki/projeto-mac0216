@@ -296,6 +296,7 @@ int main(int argc, char *argv[])
                     } else
                         machine_code = create_instr_i(current->opds[0]->value.label, 0x48, 0);
                     append_instr(&compiled, machine_code);
+                    curr_instr ++;
                     break;
                 }
             case JZ:
@@ -337,6 +338,7 @@ int main(int argc, char *argv[])
                                 operator,
                                 current->opds[0]->value.reg);
                     append_instr(&compiled, machine_code);
+                    curr_instr ++;
                     break;
                 }
             default:
@@ -346,20 +348,23 @@ int main(int argc, char *argv[])
                     if (current->op->opd_types[2])
                     {
                         unsigned char byte1, byte2, byte3;
-                        if (current->op->opd_types[0] & REGISTER)
+                        if (current->opds[0]->type & REGISTER)
                             byte1 = current->opds[0]->value.reg;
                         else
                             byte1 = current->opds[0]->value.num;
 
-                        if (current->op->opd_types[1] & REGISTER)
+                        if (current->opds[1]->type & REGISTER)
                             byte2 = current->opds[1]->value.reg;
                         else
                             byte2 = current->opds[1]->value.num;
 
-                        if (current->op->opd_types[2] & REGISTER)
+                        if (current->opds[2]->type & REGISTER)
                             byte3 = current->opds[2]->value.reg;
                         else
+                        {
                             byte3 = current->opds[2]->value.num;
+                            operator++;
+                        }
 
                         machine_code = create_instr_d((operator << 24) |
                                 (byte1 << 16) | (byte2 << 8) | byte3);
@@ -367,7 +372,7 @@ int main(int argc, char *argv[])
                     {
                         unsigned char byte1;
                         unsigned short word1;
-                        if (current->op->opd_types[0] == REGISTER)
+                        if (current->opds[0]->type & REGISTER)
                             byte1 = current->opds[0]->value.reg;
                         else
                             byte1 = current->opds[0]->value.num;
@@ -388,6 +393,7 @@ int main(int argc, char *argv[])
                     }
 
                     append_instr(&compiled, machine_code);
+                    curr_instr ++;
                     break;
                 }
         }
@@ -413,9 +419,9 @@ int main(int argc, char *argv[])
     for (Instr *pointer = compiled; pointer; pointer = pointer->next)
     {
         if (pointer->opcode)
-            printf ("opcd = %x, label = %s\n", pointer->opcode, pointer->data.alias);
+            printf ("%d: opcd = %02x, label = %s\n", curr_instr, pointer->opcode, pointer->data.alias);
         else
-            printf ("opcd = %x, opds = %x\n", pointer->data.code >> 24, pointer->data.code & 0xffffff);
+            printf ("%d: opcd = %02x, opds = %06x\n", curr_instr, pointer->data.code >> 24, pointer->data.code & 0xffffff);
         if (pointer->opcode)
         {
             EntryData *entry;
@@ -429,8 +435,9 @@ int main(int argc, char *argv[])
                     operator++;
                     delta_l = -delta_l;
                 }
-                pointer->data.code = (0xffffffff & operator) + (0xffffffff & delta_l);
-                fprintf(outfile, "%08x\n", pointer->data.code);
+                printf ("%s %d\n", pointer->data.alias, entry->i);
+                unsigned int code = ((0xff & operator) << 24) + (0xffffff & delta_l);
+                fprintf(outfile, "%08x\n", code);
             }
         } else {
             fprintf(outfile, "%08x\n", pointer->data.code);
