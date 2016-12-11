@@ -184,6 +184,27 @@ int main(int argc, char *argv[])
         }
     }
 
+    Instruction *ext_check = 0;
+    for (current = init; current && !errptr; current = current->next)
+    {
+        if (current->op->opcode == EXTERN)
+        {
+            int ok = 0;
+            for (ext_check = current->next; ext_check; ext_check = ext_check->next)
+            {
+                if (ext_check->label && !strcmp(ext_check->label, current->opds[0]->value.label))
+                {
+                    if (ext_check->op->opcode != IS)
+                        ok = 1;
+                    else
+                        die("Extern cannot point to IS instruction\n");
+                }
+            }
+            if (!ok)
+                die("Extern label %s never defined\n", current->opds[0]->value.label);
+        }
+    }
+
     // Creates SymbolTable assigning line numbers to line labels and fills
     // machine code linked list
     int curr_instr = 0;
@@ -222,7 +243,7 @@ int main(int argc, char *argv[])
             machine_code = create_instr_d(0x31fdfd08);
             append_instr(&compiled, machine_code);
 
-            machine_code = create_instr_i(current->opds[0]->value.label, current->op->opcode, 0);
+            machine_code = create_instr_i(current->opds[0]->value.label, 0x48, 0);
             append_instr(&compiled, machine_code);
 
             curr_instr += 4;
@@ -319,7 +340,53 @@ int main(int argc, char *argv[])
         }
         default:
         {
+            Instr *machine_code;
+            unsigned char operator = current->op->opcode;
+            if (current->op->opd_types[2])
+            {
+                unsigned char byte1, byte2, byte3;
+                if (current->op->opd_types[0] & REGISTER)
+                    byte1 = current->opds[0]->value.reg;
+                else
+                    byte1 = current->opds[0]->value.num;
 
+                if (current->op->opd_types[1] & REGISTER)
+                    byte2 = current->opds[1]->value.reg;
+                else
+                    byte2 = current->opds[1]->value.num;
+
+                if (current->op->opd_types[2] & REGISTER)
+                    byte3 = current->opds[2]->value.reg;
+                else
+                    byte3 = current->opds[2]->value.num;
+
+                machine_code = create_instr_d((operator << 24) |
+                        (byte1 << 16) | (byte2 << 8) | byte3);
+            } else if (current->op->opd_types[1])
+            {
+                unsigned char byte1;
+                unsigned short word1;
+                if (current->op->opd_types[0] == REGISTER)
+                    byte1 = current->opds[0]->value.reg;
+                else
+                    byte1 = current->opds[0]->value.num;
+
+                word1 = current->opds[1]->value.num;
+
+                machine_code = create_instr_d((operator << 24) |
+                        (byte1 << 16) | word1);
+            } else if (current->op->opd_types[0])
+            {
+                unsigned int three1;
+                three1 = current->opds[0]->value.num;
+
+                machine_code = create_instr_d((operator << 24) |
+                        (three1 & 0xffffff));
+            } else {
+                machine_code = create_instr_d(operator << 24);
+            }
+
+            append_instr(&compiled, machine_code);
             break;
         }
         }
@@ -328,6 +395,8 @@ int main(int argc, char *argv[])
     curr_instr = 0;
     for (Instr *pointer = compiled; pointer; pointer = pointer->next)
     {
+        if (pointer->opcode)
+            printf ("opcd = %d, label = %s\n", pointer->opcode, pointer->data.alias);
         if (pointer->opcode)
         {
             EntryData *entry;
@@ -348,29 +417,10 @@ int main(int argc, char *argv[])
         curr_instr++;
     }
 
-    //verificar se mantem esse erro
-    if (current->op->opcode == EXTERN)
-    {
-        int ok = 0;
-        for (ext_check = current->next; ext_check; ext_check = ext_check->next)
-        {
-            if (ext_check->label && !strcmp(ext_check->label, current->opds[0]->value.label))
-            {
-                if (ext_check->op->opcode != IS)
-                    ok = 1;
-                else
-                    die("Extern cannot point to IS instruction\n");
-            }
-        }
-        if (!ok)
-            die("Extern label %s never defined\n", current->opds[0]->value.label);
-    }
-}
-
-// Destroy all
-instructions_destroy(&init);
-buffer_destroy(line);
-stable_visit(alias_table, del_item);
-stable_destroy(alias_table);
-fclose(file);
+    // Destroy all
+    instructions_destroy(&init);
+    buffer_destroy(line);
+    stable_visit(alias_table, del_item);
+    stable_destroy(alias_table);
+    fclose(file);
 }
