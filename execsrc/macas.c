@@ -32,10 +32,9 @@ int main(int argc, char *argv[])
     char* objfile = objfile_name(argv[1]);
     FILE *outfile = fopen(objfile, "wo");
 
+    if (!file || !outfile) die ("Could not open file.");
+
     if(!assemble(argv[1], file, outfile)) die(0);
 
     free(objfile);
-
-    fclose(file);
-    fclose(outfile);
 }

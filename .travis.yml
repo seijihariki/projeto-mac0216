@@ -1,3 +1,0 @@
-install: true
-language: c
-script: make configure && make && make debug

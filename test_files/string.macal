@@ -1,3 +1,0 @@
-EXTERN main
-
-main STR "\a \b \f \n \r \t \v \\ \' \" \? \ "
