@@ -138,43 +138,43 @@ int loadfile(FILE *file, SymbolTable externs, int start_instr, Instr **instr_cha
         {
             switch (line->data[0])
             {
-            case 'E':
-            {
-                char *alias = malloc((getWord((const char*)&line->data[2]) + 1)*sizeof(char));
-                int address;
+                case 'E':
+                    {
+                        char *alias = malloc((getWord((const char*)&line->data[2]) + 1)*sizeof(char));
+                        int address;
 
-                if (sscanf(line->data, "E %s %d", alias, &address) < 2)
+                        if (sscanf(line->data, "E %s %d", alias, &address) < 2)
+                            die ("Line\n'%s'\ncould not be understood!", line->data);
+
+                        InsertionResult inserted = stable_insert(externs, alias);
+
+                        if (!inserted.new)
+                            die("Label '%s' doubly defined!", alias);
+                        else inserted.data->i = address + start_instr;
+                        free(alias);
+                        break;
+                    }
+                case 'B':
+                    break;
+                case '*':
+                    {
+                        int i = 0, spacecnt = 0;
+                        while (spacecnt < 2)
+                            spacecnt += isspace(line->data[i++]);
+                        char *alias = malloc((getWord((const char*)&line->data[i]) + 1)*sizeof(char));
+                        int opcode;
+
+                        if (sscanf(line->data, "* %d %s", &opcode, alias) < 2)
+                            die ("Line\n'%s'\ncould not be understood!", line->data);
+
+                        Instr *instruction = create_instr_i(alias, opcode);
+                        append_instr(instr_chain, instruction);
+                        free(alias);
+                        break;
+                    }
+                default:
                     die ("Line\n'%s'\ncould not be understood!", line->data);
-
-                InsertionResult inserted = stable_insert(externs, alias);
-
-                if (!inserted.new)
-                    die("Label '%s' doubly defined!", alias);
-                else inserted.data->i = address + start_instr;
-                free(alias);
-                break;
-            }
-            case 'B':
-                break;
-            case '*':
-            {
-                int i = 0, spacecnt = 0;
-                while (spacecnt < 2)
-                    spacecnt += isspace(line->data[i++]);
-                char *alias = malloc((getWord((const char*)&line->data[i]) + 1)*sizeof(char));
-                int opcode;
-
-                if (sscanf(line->data, "* %d %s", &opcode, alias) < 2)
-                    die ("Line\n'%s'\ncould not be understood!", line->data);
-
-                Instr *instruction = create_instr_i(alias, opcode);
-                append_instr(instr_chain, instruction);
-                free(alias);
-                break;
-            }
-            default:
-                die ("Line\n'%s'\ncould not be understood!", line->data);
-                break;
+                    break;
             }
         } else {
             unsigned int d_instruction;
